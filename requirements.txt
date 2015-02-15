@@ -1,0 +1,5 @@
+pyzmq==14.5.0
+tornado==4.1
+u-msgpack-python==2.0
+docopt==0.6.2
+PyYAML==3.11
