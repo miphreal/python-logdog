@@ -22,6 +22,8 @@ class FileWatcher(BasePoller):
     @gen.coroutine
     def poll(self):
         self.input.open()
+        yield gen.moment
+        
         logger.debug('[%s] Watching...', self)
 
         while self.started:

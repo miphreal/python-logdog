@@ -19,11 +19,55 @@
 
 <body data-ng-app="logdog.app">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-12" data-ng-controller="Test">
-                <div data-log-viewer></div>
-                <div data-ng-repeat="msg in messages">[[ msg.msg ]]</div>
 
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="navbar navbar-default">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse"
+                                data-target=".navbar-responsive-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="javascript:void(0)">logdog</a>
+                    </div>
+                    <div class="navbar-collapse collapse navbar-responsive-collapse">
+                        <ul class="nav navbar-nav">
+                            <li class="active"><a href="javascript:void(0)">Raw Log<div class="ripple-wrapper"></div></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-5">
+                <div class="pull-left">
+                    <a href="javascript:void(0)" class="btn btn-default btn-raised">
+                        <i class="mdi-av-pause-circle-outline"></i>
+                        <i class="mdi-av-play-circle-outline"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-2 text-center text-muted">
+                <i class="mdi-navigation-refresh loading-icon"></i>
+            </div>
+            <div class="col-lg-5">
+                <div class="pull-right">
+                    <span class="togglebutton">
+                        <label title="Scroll to the end"><input type="checkbox" checked=""></label>
+                    </span>
+                    <a href="javascript:void(0)" class="btn btn-flat btn-danger btn-raised">Clear</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="jumbotron" data-ng-controller="LogViewCtl">
+                    <div class="log-view" data-log-viewer data-socket="socket"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -31,7 +75,7 @@
     <script src="{{ static_url('js/app.js') }}"></script>
 
     <script type="text/ng-template" id="partial/log-viewer.html">
-        <div id="id-log-out"></div>
+        <pre id="id-log-lines"></pre>
     </script>
 </body>
 </html>

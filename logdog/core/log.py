@@ -29,6 +29,11 @@ def configure_logging(log_level, log_format, log_custom_format=None):
                 'handlers': ['console'],
                 'level': log_level,
                 'propagate': False,
+            },
+            'tornado': {
+                'handlers': ['console'],
+                'level': log_level,
+                'propagate': False,
             }
         }
     })

@@ -18,7 +18,9 @@ module.exports = function (grunt) {
 
     var appCss = [
         '<%= buildPath %>/css/bootstrap.css',
-        '<%= buildPath %>/css/ripples.css'
+        '<%= buildPath %>/css/ripples.css',
+
+        '<%= srcPath %>/css/app.css'
     ];
 
     grunt.initConfig({

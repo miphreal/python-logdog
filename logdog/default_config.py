@@ -6,7 +6,8 @@ import os
 
 config = {
     'sources': {
-        '/*/*/*.log': {'pipe': 'pipes.file->webui'},
+        '/var/log/*.log': {'pipe': 'pipes.file->webui'},
+        '/var/log/*/*.log': {'pipe': 'pipes.file->webui'},
         '/var/log/syslog': 'pipes.file->webui',
     },
 
@@ -15,8 +16,9 @@ config = {
     'pipes': {
         'file->webui': [
             'watch::pollers.file-watcher',
+            'processors.stripper',
             'view::viewers.webui',
-        ]
+        ],
     },
 
     # pollers
@@ -31,7 +33,9 @@ config = {
     'collectors': {},
 
     # processors
-    'processors': {},
+    'processors': {
+        'stripper': {'cls': 'logdog.processors.Stripper'},
+    },
 
     # connectors
     'connectors': {

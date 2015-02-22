@@ -14,47 +14,106 @@
         $(function() {$.material.init();});
     });
 
-    app.directive('logViewer', [function(){
+    app.directive('logViewer', ['$timeout', function($timeout){
         return {
             restrict: 'A',
+            scope: {socket: '='},
             templateUrl: 'partial/log-viewer.html',
             link: function (scope, element, attrs) {
+                var logContainer = element.find('#id-log-lines');
+                var el = element[0];
+                var buffer = [];
+
+                scope.socket.on(scope.socket.events.MSG, function(event){
+                    buffer.push(event.data);
+                });
+
+                var dumpInterval = 100;
+                function dumpLog(){
+                    if (buffer.length) {
+                        var buf = buffer;
+                        buffer = [];
+                        logContainer.append(buf.join(''));
+                        el.scrollTop = el.scrollHeight;
+                    }
+                    $timeout(dumpLog, dumpInterval);
+                }
+
+                $timeout(dumpLog, dumpInterval);
             }
         }
     }]);
 
-    app.controller('Test', ['$scope', '$timeout', function($scope, $timeout){
-        $scope.messages = [{msg: '----'}];
-
-        var reconnectDelay = 1000;
-
-        function initSocket() {
-            var socket = window.s = new WebSocket('ws://127.0.0.1:8888/ws/logs');
-
-            socket.onopen = function (event) {
-                console.log('socket open');
-                reconnectDelay = 1000;
+    app.service('Socket', ['$timeout', function ($timeout) {
+        return function (url, reconnectDelay) {
+            var callbacks = {
+                'open': [],
+                'message': [],
+                'error': [],
+                'close': []
             };
 
-            socket.onmessage = function (event) {
-                console.log('socket message');
-                $scope.$apply(function () {
-                    $scope.messages.unshift({msg: event.data});
+            var events = {
+                'OPEN': 'open',
+                'MSG': 'message',
+                'ERR': 'error',
+                'CLOSE': 'close'
+            };
+
+            var handleEvent = function (type, event) {
+                angular.forEach(callbacks[type], function (callback) {
+                    callback(event);
                 });
             };
 
-            socket.onerror = function (event) {
-                console.log('socket error');
-            };
+            var ws = null;
 
-            socket.onclose = function (event) {
-                console.log('socket close');
-                console.log('trying to reconnect...');
-                $timeout(initSocket, reconnectDelay);
-                reconnectDelay *= 2;
-            };
-        }
+            reconnectDelay = reconnectDelay || 1000;
+            function initSocket() {
+                ws = new WebSocket(url);
 
-        initSocket();
-    }])
+                ws.onopen = function (event) {
+                    console.log('socket open');
+                    handleEvent(events.OPEN, event);
+                    reconnectDelay = 1000;
+                };
+
+                ws.onmessage = function (event) {
+                    console.log('socket message');
+                    handleEvent(events.MSG, event);
+                };
+
+                ws.onerror = function (event) {
+                    console.log('socket error');
+                    handleEvent(events.ERR, event);
+                };
+
+                ws.onclose = function (event) {
+                    console.log('socket close');
+                    console.log('trying to reconnect...');
+                    handleEvent(events.CLOSE, event);
+                    $timeout(initSocket, reconnectDelay);
+                    reconnectDelay *= 2;
+                };
+
+                return ws;
+            }
+
+            return {
+                'events': events,
+                'ws': initSocket(),
+                'on': function(eventType, cb){
+                    callbacks[eventType].push(cb);
+                },
+                'off': function(eventType){
+                    delete callbacks[eventType];
+                }
+            }
+
+        };
+    }]);
+
+    app.controller('LogViewCtl', ['$scope', 'Socket', function($scope, Socket){
+        $scope.socket = Socket('ws://' + location.host + '/ws/logs');
+    }]);
 })();

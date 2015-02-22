@@ -1,0 +1,25 @@
+.log-view {
+    height: 700px;
+    overflow: auto;
+}
+
+.log-view pre {
+    background-color: inherit;
+    border: inherit;
+}
+
+.loading-icon {
+    font-size: 48px;
+    margin-top: 5px;
+    color: rgba(92, 158, 126, 0.12);
+
+    display: inline-block;
+    -webkit-animation: spin 1.5s infinite linear;
+       -moz-animation: spin 1.5s infinite linear;
+            animation: spin 1.5s infinite linear;
+}
+
+@-webkit-keyframes spin {
+    0%   {transform: rotate(360deg) rotateY(180deg)}
+    100% {transform: rotate(0deg) rotateY(180deg)}
+}

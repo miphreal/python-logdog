@@ -107,4 +107,5 @@ class Application(object):
         yield [p.start() for p in self._pipes.itervalues()]
 
     def run(self):
-        self.loop.run_sync(self._init)
+        self.loop.add_callback(self._init)
+        self.loop.start()

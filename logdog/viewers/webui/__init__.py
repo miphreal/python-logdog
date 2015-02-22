@@ -36,12 +36,12 @@ class WebUI(BaseViewer):
         _web_app = _web_apps.get((self.config.address or '*', self.config.port))
         self._web_app = _web_app
         if _web_app:
+            logger.info('[%s] Joining %s:%s...', self,
+                        self.config.address or '*', self.config.port)
             return
 
         logger.debug('[%s] Loading webui app...', self)
-        _web_app = WebApp()
-        _web_app.config = self.config
-        _web_app.ws = []
+        _web_app = WebApp(**self.config)
         _web_app.listen(address=self.config.address, port=self.config.port)
         logger.info('[%s] Starting %s:%s...', self,
                     self.config.address or '*', self.config.port)
@@ -52,4 +52,4 @@ class WebUI(BaseViewer):
     def on_recv(self, data):
         if self.started:
             for ws in self._web_app.ws:
-                ws.write_message(data.strip())
+                ws.write_message(data)

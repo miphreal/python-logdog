@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 class Pipe(object):
     def __init__(self, *pipe_elements, **kwargs):
         self.app = kwargs.pop('app')
-        self._pipe = [self._construct_pipe_element(name, conf) for name, conf in pipe_elements]
+        self._pipe = [self._construct_pipe_element(name, conf, kwargs) for name, conf in pipe_elements]
         self._link_pipe_objects()
         self._meta_name = ''
 
-    def _construct_pipe_element(self, name, conf):
+    def _construct_pipe_element(self, name, *confs):
         cls, defaults, ns = self.app.config.find_class(name=name)
-        if conf:
+        for conf in filter(bool, confs):
             defaults.update(conf)
         defaults['app'] = self.app
         defaults['pipe'] = self

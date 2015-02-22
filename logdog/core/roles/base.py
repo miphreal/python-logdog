@@ -28,7 +28,7 @@ class BaseRole(object):
             self.send = getattr(self, 'on_recv', self._output_forwarder)
 
     def _output_forwarder(self, data):
-        self.output.send(data)
+        return self.output.send(data)
 
     def set_input(self, obj):
         self.input = obj

@@ -9,12 +9,12 @@ Arguments:
   <pipe-namespace>          One or more pipe namespaces to be run
 
 Options:
-  -h --help                 Show this screen.
-  --version                 Show version.
-  -v --verbose              Run in verbose mode.
-  -l --log-level=<level>    Set logging level. [default: INFO]
-  -f --log-format=<format>  Set logging format. [default: quiet]
-  -c --config=<config>      Configuration file.
+  -h --help                 Show this screen
+  --version                 Show version
+  -v --verbose              Run in verbose mode
+  -l --log-level=<level>    Set logging level [default: INFO]
+  -f --log-format=<format>  Set logging format [default: quiet]
+  -c --config=<config>      Configuration file
 """
 from docopt import docopt
 from logdog.app import Application
