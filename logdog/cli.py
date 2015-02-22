@@ -1,9 +1,12 @@
 """logdog command line interface
 
 Usage:
-  logdog (watch | webui) [options]
+  logdog [<pipe-namespace>...] [options]
   logdog (-h | --help)
   logdog --version
+
+Arguments:
+  <pipe-namespace>          One or more pipe namespaces to be run
 
 Options:
   -h --help                 Show this screen.
@@ -13,44 +16,10 @@ Options:
   -f --log-format=<format>  Set logging format. [default: quiet]
   -c --config=<config>      Configuration file.
 """
-import logging.config
-
 from docopt import docopt
-from logdog.core.config import ConfigLoader
+from logdog.app import Application
+from logdog.core.log import configure_logging
 from logdog.version import __version__
-
-
-def configure_logging(log_level, log_format, log_custom_format=None):
-    log_custom_format = log_custom_format or log_format
-    logging.config.dictConfig({
-        'version': 1,
-        'disable_existing_loggers': True,
-        'formatters': {
-            'quiet': {
-                'format': '%(asctime)s [%(levelname)s] %(message)s'
-            },
-            'verbose': {
-                'format': 'PID%(process)d %(asctime)s [%(levelname)s:%(name)s:%(lineno)d] %(message)s'
-            },
-            'custom': {
-                'format': log_custom_format
-            }
-        },
-        'handlers': {
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-                'formatter': log_format
-            }
-        },
-        'loggers': {
-            'logdog': {
-                'handlers': ['console'],
-                'level': log_level,
-                'propagate': False,
-            }
-        }
-    })
 
 
 def main():
@@ -68,19 +37,10 @@ def main():
 
     configure_logging(log_level, log_format, log_custom_format)
 
-    if arguments.get('--config'):
-        config = ConfigLoader(path=arguments['--config']).load_config()
-    else:
-        config = ConfigLoader(path=None).load_config(default_only=True)
-
-    if arguments.get('watch'):
-        from logdog import dog
-        dog.main(config=config)
-    elif arguments.get('webui'):
-        from logdog import webui
-        if arguments.get('--verbose'):
-            config.webui.debug = True
-        webui.main(config=config)
+    Application(
+        active_parts=arguments.get('<pipe-namespace>'),
+        config_path=arguments.get('--config')
+    ).run()
 
 if __name__ == '__main__':
     main()

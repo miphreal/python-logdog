@@ -5,10 +5,10 @@
         'ui.router',
         'ui.bootstrap'
     ],
-    function ($interpolateProvider) {
+    ['$interpolateProvider', function ($interpolateProvider) {
         $interpolateProvider.startSymbol('[[');
         $interpolateProvider.endSymbol(']]');
-    });
+    }]);
 
     app.run(function () {
         $(function() {$.material.init();});

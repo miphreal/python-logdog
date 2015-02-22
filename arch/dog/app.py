@@ -1,9 +1,6 @@
 from tornado.util import import_object
 import zmq.eventloop.ioloop
 
-from logdog.dog.forwarders import Forwarder
-from logdog.dog.watchers import FileWatcher
-
 
 class Application(object):
     def __init__(self, config, loop=None):

@@ -15,7 +15,7 @@ requires = [
 
 setup(
     name='logdog',
-    versionversion,
+    version=version,
     description='logs watching + webui',
     author=author,
     author_email=author_email,

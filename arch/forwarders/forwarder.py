@@ -60,3 +60,4 @@ class Forwarder(IntervalSleepPolicyMixin):
     def stop(self):
         logger.info('[FWDR:%s] Stopping message forwarder.', self._path)
         self._started = False
+
