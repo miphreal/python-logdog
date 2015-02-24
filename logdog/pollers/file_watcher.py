@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 class FileWatcher(BasePoller):
     defaults = BasePoller.defaults.copy_and_update(
-        poll_sleep_policy='utils.sleep-policies.default'
+        poll_sleep_policy='utils.sleep-policies.default',
+        greedy_file_reading=True,
     )
 
     def __init__(self, app, **config):
@@ -18,6 +19,11 @@ class FileWatcher(BasePoller):
 
     def __str__(self):
         return u'WATCHER:{!s}'.format(self.pipe)
+
+    def _prepare_message(self, data):
+        msg = super(FileWatcher, self)._prepare_message(data)
+        msg.source = getattr(self.input, 'name', msg.source)
+        return msg
 
     @gen.coroutine
     def poll(self):
@@ -31,11 +37,12 @@ class FileWatcher(BasePoller):
 
             if data:
                 try:
-                    self.send(data)
+                    self.send(self._prepare_message(data))
                 except Exception as e:
                     pass
                 self.poll_sleep_policy.reset()
-                yield gen.moment
+                if not self.config.greedy_file_reading:
+                    yield gen.moment
             else:
                 self.input.check_stat()
                 logger.debug('[%s] Sleep on watching %ss.', self, self.poll_sleep_policy.cur_interval)

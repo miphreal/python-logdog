@@ -37,6 +37,10 @@ class Pipe(object):
         for obj_next in self._pipe[1:]:
             obj_first.set_output(obj_next)
             obj_next.set_input(obj_first)
+            obj_first = obj_next
+
+        for obj in self._pipe:
+            obj.relink_methods()
 
     def set_input(self, data):
         if self._pipe:

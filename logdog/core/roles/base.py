@@ -2,6 +2,7 @@ import logging
 from tornado import gen
 
 from ..config import Config
+from ..msg import Msg
 from ..utils import mark_as_coroutine
 
 
@@ -27,6 +28,9 @@ class BaseRole(object):
             # TODO. add adjusting to async funcs
             self.send = getattr(self, 'on_recv', self._output_forwarder)
 
+    def relink_methods(self):
+        self.link_methods()
+
     def _output_forwarder(self, data):
         return self.output.send(data)
 
@@ -35,6 +39,17 @@ class BaseRole(object):
 
     def set_output(self, obj):
         self.output = obj
+
+    def _prepare_message_meta(self, **extra):
+        extra.setdefault('host', None)
+        return extra
+
+    def _prepare_message(self, data):
+        return Msg(
+            message=data,
+            source=None,
+            meta=self._prepare_message_meta()
+        )
 
     def _pre_start(self):
         pass

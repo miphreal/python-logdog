@@ -7,9 +7,9 @@
     background-color: inherit;
     border: inherit;
     min-height: 690px;
-    -webkit-box-shadow: inset 0px 0px 34px -10px rgba(224,224,224,1);
-    -moz-box-shadow: inset 0px 0px 34px -10px rgba(224,224,224,1);
-    box-shadow: inset 0px 0px 34px -10px rgba(224,224,224,1);
+    -webkit-box-shadow: inset 0 0 34px -10px rgba(224,224,224,1);
+    -moz-box-shadow: inset 0 0 34px -10px rgba(224,224,224,1);
+    box-shadow: inset 0 0 34px -10px rgba(224,224,224,1);
 }
 
 .loading-icon {
@@ -38,7 +38,7 @@
     margin: 0;
 }
 .ctl-panel-bottom .togglebutton {
-    margin: 0 4px;
+    margin: 0 0 0 4px;
     position: relative;
     top: -1px;
 }

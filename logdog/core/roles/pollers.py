@@ -15,7 +15,7 @@ class BasePoller(BaseRole):
             self.send(self.input.pop())
 
     def on_recv(self, data):
-        self.output.send(data)
+        return self.output.send(data)
 
     @mark_as_coroutine
     @gen.coroutine

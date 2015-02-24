@@ -19,6 +19,18 @@ config = {
             'processors.stripper',
             'view::viewers.webui',
         ],
+
+        # TODO. support the following format
+        'f->webui': [
+            {'watch': [
+                'pollers.file-watcher',
+                'processors.stripper',
+            ]},
+            'connectors.zmq-tunnel',
+            {'view': [
+                'viewers.webui',
+            ]}
+        ]
     },
 
     # pollers

@@ -1,6 +1,21 @@
 (function () {
     'use strict';
 
+    var entityMap = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': '&quot;',
+        "'": '&#39;',
+        "/": '&#x2F;'
+    };
+
+    function escapeHtml(string) {
+        return String(string).replace(/[&<>"'\/]/g, function (s) {
+            return entityMap[s];
+        });
+    }
+
     var app = angular.module('logdog.app', [
         'ui.router',
         'ui.bootstrap'
@@ -42,7 +57,7 @@
 
                 scope.socket.on(scope.socket.events.MSG, function(event){
                     if (isRunning) {
-                        buffer.push(event.data);
+                        buffer.push(JSON.parse(event.data));
                     }
                 });
 
@@ -52,8 +67,30 @@
                     }
                 }
 
-                function appendLogContainer (buf) {
-                    logContainer.append(buf);
+                function formatMessage (message, noEscape) {
+                    if (message && (typeof message.msg !== 'undefined')) {
+                        var msg = message.msg;
+                        msg = noEscape ? msg : escapeHtml(msg);
+                        return (
+                            '<div data-source="' + escapeHtml(message.src) + '">'
+                                + msg.trimRight()
+                            + '</div>'
+                        );
+                    }
+                    return message;
+                }
+
+                function appendLogContainer (buf, noEscape) {
+                    if (angular.isArray(buf)) {
+                        angular.forEach(buf, appendLogContainer);
+                    } else {
+                        try {
+                            logContainer.append(formatMessage(buf, noEscape));
+                        } catch (e) {
+                            logContainer.append(buf);
+                            console.log(e);
+                        }
+                    }
                 }
 
                 var dumpInterval = 100;
@@ -71,7 +108,7 @@
                                 var msg = '<hr><div class="text-center text-info">['
                                            + new Date()
                                            + '] New messages will be below.</div><hr>';
-                                appendLogContainer(msg);
+                                appendLogContainer(msg, true);
                                 scrollToEnd();
                             }
                         }

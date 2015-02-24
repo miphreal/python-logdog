@@ -52,4 +52,4 @@ class WebUI(BaseViewer):
     def on_recv(self, data):
         if self.started:
             for ws in self._web_app.ws:
-                ws.write_message(data)
+                ws.write_message(data.serialize_json())

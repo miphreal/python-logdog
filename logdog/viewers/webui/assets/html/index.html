@@ -60,11 +60,13 @@
                                                    'mdi-av-pause-circle-outline': isRunning}"></i>
                                 <a class="pointer"
                                    data-ng-click="onStartStop()">[[ isRunning ? 'pause' : 'resume' ]]</a>
+                                |
                                 <a class="pointer" data-ng-click="onClear()">clear</a>
-
+                                |
                                 <span class="togglebutton">
                                     <label title="Scroll to the end"><input type="checkbox" data-ng-model="scrollToEndEnabled"></label>
                                 </span>
+                                |
                             </div>
                         </div>
                     </div>
