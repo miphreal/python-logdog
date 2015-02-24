@@ -41,35 +41,37 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-lg-5">
-                <div class="pull-left">
-                    <a href="javascript:void(0)" class="btn btn-default btn-raised">
-                        <i class="mdi-av-pause-circle-outline"></i>
-                        <i class="mdi-av-play-circle-outline"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-2 text-center text-muted">
-                <i class="mdi-navigation-refresh loading-icon"></i>
-            </div>
-            <div class="col-lg-5">
-                <div class="pull-right">
-                    <span class="togglebutton">
-                        <label title="Scroll to the end"><input type="checkbox" checked=""></label>
-                    </span>
-                    <a href="javascript:void(0)" class="btn btn-flat btn-danger btn-raised">Clear</a>
+        <div data-ng-controller="LogViewCtl">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="jumbotron">
+                        <i data-ng-show="isRunning" class="mdi-navigation-refresh text-muted loading-icon"></i>
+
+                        <div class="log-view"
+                             data-log-viewer
+                             data-socket="socket"
+                             data-log-viewer-api="logViewerApi"
+                             data-scroll-to-end-enabled="scrollToEndEnabled">
+                        </div>
+
+                        <div class="ctl-panel-bottom row">
+                            <div class="col-xs-12 text-primary">
+                                <i data-ng-class="{'mdi-av-play-circle-outline': !isRunning,
+                                                   'mdi-av-pause-circle-outline': isRunning}"></i>
+                                <a class="pointer"
+                                   data-ng-click="onStartStop()">[[ isRunning ? 'pause' : 'resume' ]]</a>
+                                <a class="pointer" data-ng-click="onClear()">clear</a>
+
+                                <span class="togglebutton">
+                                    <label title="Scroll to the end"><input type="checkbox" data-ng-model="scrollToEndEnabled"></label>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="jumbotron" data-ng-controller="LogViewCtl">
-                    <div class="log-view" data-log-viewer data-socket="socket"></div>
-                </div>
-            </div>
-        </div>
     </div>
     <!-- js -->
     <script src="{{ static_url('js/app.js') }}"></script>

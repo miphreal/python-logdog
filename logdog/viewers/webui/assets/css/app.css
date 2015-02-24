@@ -6,20 +6,47 @@
 .log-view pre {
     background-color: inherit;
     border: inherit;
+    min-height: 690px;
+    -webkit-box-shadow: inset 0px 0px 34px -10px rgba(224,224,224,1);
+    -moz-box-shadow: inset 0px 0px 34px -10px rgba(224,224,224,1);
+    box-shadow: inset 0px 0px 34px -10px rgba(224,224,224,1);
 }
 
 .loading-icon {
-    font-size: 48px;
-    margin-top: 5px;
+    font-size: 24px;
     color: rgba(92, 158, 126, 0.12);
 
     display: inline-block;
     -webkit-animation: spin 1.5s infinite linear;
        -moz-animation: spin 1.5s infinite linear;
             animation: spin 1.5s infinite linear;
+
+    top: 10px;
+    left: 25px;
+    position: absolute;
 }
 
 @-webkit-keyframes spin {
     0%   {transform: rotate(360deg) rotateY(180deg)}
     100% {transform: rotate(0deg) rotateY(180deg)}
+}
+
+.ctl-panel-bottom {
+
+}
+.ctl-panel-bottom .togglebutton label {
+    margin: 0;
+}
+.ctl-panel-bottom .togglebutton {
+    margin: 0 4px;
+    position: relative;
+    top: -1px;
+}
+.ctl-panel-bottom i {
+    position: relative;
+    top: 2px;
+}
+
+.pointer {
+    cursor: pointer;
 }
