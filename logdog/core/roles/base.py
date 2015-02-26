@@ -3,7 +3,7 @@ from tornado import gen
 
 from ..config import Config
 from ..msg import Msg
-from ..utils import mark_as_coroutine
+from ..utils import mark_as_coroutine, mark_as_proxy_method, is_proxy
 
 
 logger = logging.getLogger(__name__)
@@ -17,22 +17,41 @@ class BaseRole(object):
         self.pipe = pipe
         self.config = self.defaults.copy_and_update(config)
         self.started = False
-        self.input = self.output = self.send = None
+        self.input = self.output = self.send = self._forward = None
         self.link_methods()
 
     def __str__(self):
         return '{}:{}'.format(self.__class__.__name__, self.pipe)
 
-    def link_methods(self, **kwargs):
+    def link_methods(self):
         if getattr(self, 'send', None) is None:
-            # TODO. add adjusting to async funcs
-            self.send = getattr(self, 'on_recv', self._output_forwarder)
+            self.send = self.get_send_method()
+
+        if getattr(self, '_forward', None) is None:
+            self._forward = self.get_forward_method()
 
     def relink_methods(self):
         self.link_methods()
 
-    def _output_forwarder(self, data):
+    @mark_as_proxy_method
+    def _input_forwarder(self, data):
         return self.output.send(data)
+
+    def get_send_method(self):
+        return getattr(self, 'on_recv', self._input_forwarder)
+
+    def get_forward_method(self):
+        method = self._input_forwarder
+        obj = self.output
+
+        while is_proxy(method):
+            if obj:
+                method = obj.send
+                obj = obj.output
+            else:
+                break
+
+        return method
 
     def set_input(self, obj):
         self.input = obj

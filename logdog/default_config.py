@@ -2,7 +2,7 @@ import os
 
 
 # options must be valid python identifiers, e.g. "default_pipe"
-# names can be any string, e.g. "file->webui"
+# names can be any string, e.g. "file->webui" (^::,@)
 
 config = {
     'sources': {
@@ -14,9 +14,23 @@ config = {
     'default_pipe': 'pipes.file->webui',
 
     'pipes': {
+        # simple pipe
+        'pipe-example1': [
+            'pollers.file-watcher',
+            'viewers.webui',
+        ],
+
+        # simple pipe with namespace
+        'pipe-example2': [
+            'ns::pollers.file-watcher',
+            'ns::viewers.webui',
+        ],
+
         'file->webui': [
             'watch::pollers.file-watcher',
-            'processors.stripper',
+            'watch::processors.stripper',
+            'watch::connectors.zmq-tunnel@sender',
+            'view::connectors.zmq-tunnel@receiver',
             'view::viewers.webui',
         ],
 
@@ -25,9 +39,10 @@ config = {
             {'watch': [
                 'pollers.file-watcher',
                 'processors.stripper',
+                'connectors.zmq-tunnel@sender',
             ]},
-            'connectors.zmq-tunnel',
             {'view': [
+                'connectors.zmq-tunnel@receiver',
                 'viewers.webui',
             ]}
         ]
@@ -53,8 +68,8 @@ config = {
     'connectors': {
         'zmq-tunnel': {
             'cls': 'logdog.connectors.ZMQTunnel',
-            'sender': {'socket': 'PUSH', 'connect': ['tcp://localhost:45457']},
-            'receiver': {'socket': 'PULL', 'bind': ['tcp://localhost:45457']},
+            '@sender': {'socket': 'PUSH', 'connect': ['tcp://localhost:45457']},
+            '@receiver': {'socket': 'PULL', 'bind': ['tcp://localhost:45457']},
         }
     },
 

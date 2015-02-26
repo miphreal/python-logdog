@@ -1,5 +1,6 @@
 import logging
 from tornado import gen
+from tornado.concurrent import is_future
 
 from logdog.core.roles.pollers import BasePoller
 
@@ -27,21 +28,26 @@ class FileWatcher(BasePoller):
 
     @gen.coroutine
     def poll(self):
+        greedy_file_reading_enabled = self.config.greedy_file_reading
         self.input.open()
-        yield gen.moment
 
+        yield gen.moment
         logger.debug('[%s] Watching...', self)
 
         while self.started:
             data = self.input.read_line()
 
             if data:
+                data = self._prepare_message(data)
                 try:
-                    self.send(self._prepare_message(data))
+                    ret = self._forward(data)
+                    if is_future(ret):
+                        yield ret
                 except Exception as e:
-                    pass
+                    logger.exception(e)
+
                 self.poll_sleep_policy.reset()
-                if not self.config.greedy_file_reading:
+                if not greedy_file_reading_enabled:
                     yield gen.moment
             else:
                 self.input.check_stat()

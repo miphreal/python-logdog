@@ -1,7 +1,6 @@
 import logging
 from tornado import gen
 from logdog.core.path import Path
-from .utils import mark_as_coroutine
 
 
 logger = logging.getLogger(__name__)
@@ -22,12 +21,10 @@ class Pipe(object):
         defaults['pipe'] = self
         return cls(**defaults)
 
-    @mark_as_coroutine
     @gen.coroutine
     def start(self):
         yield [po.start() for po in self._pipe]
 
-    @mark_as_coroutine
     @gen.coroutine
     def stop(self):
         yield [po.stop() for po in self._pipe]

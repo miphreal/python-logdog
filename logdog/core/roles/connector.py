@@ -1,8 +1,11 @@
 import logging
 from tornado import gen
 
-from ..config import Config
-from ..utils import mark_as_coroutine
+from .base import BaseRole
 
 
 logger = logging.getLogger(__name__)
+
+
+class BaseConnector(BaseRole):
+    pass

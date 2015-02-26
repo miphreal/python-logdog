@@ -9,6 +9,21 @@ except ImportError:
 from logdog.default_config import config as logdog_default_config
 
 
+_unset = object()
+
+
+ROOT_CONFIG_CONTAINER = (
+    'sources',
+    'pipes',
+    'pollers',
+    'collectors',
+    'processors',
+    'connectors',
+    'viewers',
+    'utils',
+)
+
+
 def handle_as_list(conf):
     if isinstance(conf, dict):
         return conf.iteritems()
@@ -34,6 +49,7 @@ def is_importable(key):
 class Config(ObjectDict):
     namespace_delimiter = '::'
     namespace_default = '*'
+    subconfig_namespace_delimiter = '@'
 
     _classes_cache = {}
     _conf_path_cache = {}
@@ -52,19 +68,38 @@ class Config(ObjectDict):
         conf.update(config)
         return conf
 
+    def walk_conf(self, path, default=_unset):
+        _cache = self._conf_path_cache.get(path)
+        if _cache is not None:
+            return copy.deepcopy(_cache)
+
+        target = self
+        for part in path.split('.'):
+            try:
+                target = target[part]
+            except (KeyError, IndexError):
+                if default is not _unset:
+                    return default
+                raise
+
+        self._conf_path_cache[path] = target
+        return copy.deepcopy(target)
+
     def find_conf(self, name, fallback=None):
+        name = name.strip().lstrip(self.namespace_delimiter).rstrip(self.subconfig_namespace_delimiter)
+
         namespace = self.namespace_default
         if self.namespace_delimiter in name:
             namespace, tmp, name = name.partition(self.namespace_delimiter)
 
-        _cache = self._conf_path_cache.get(name)
-        if _cache is not None:
-            return copy.deepcopy(_cache)
+        extra_conf = None
+        if self.subconfig_namespace_delimiter in name:
+            name, tmp, extra_conf = name.rpartition(self.subconfig_namespace_delimiter)
+            extra_conf_relative = '{}.@{}'.format(name, extra_conf)
+            extra_conf = self.walk_conf(extra_conf_relative, default=None)
 
         try:
-            target = self
-            for part in name.split('.'):
-                target = target[part]
+            target = self.walk_conf(name)
         except KeyError:
             if fallback:
                 return self.find_conf(name=fallback)
@@ -74,8 +109,10 @@ class Config(ObjectDict):
         if isinstance(target, (list, tuple)):
             target = handle_as_list(target)
 
-        self._conf_path_cache[name] = target, name, namespace
-        return copy.deepcopy(target), name, namespace
+        elif extra_conf and isinstance(target, dict) and isinstance(extra_conf, dict):
+            target.update(extra_conf)
+
+        return target, name, namespace
 
     def find_class(self, name, fallback=None):
         _cache = self._classes_cache.get(name)
