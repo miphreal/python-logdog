@@ -17,7 +17,9 @@ class BaseRole(object):
         self.pipe = pipe
         self.config = self.defaults.copy_and_update(config)
         self.started = False
-        self.input = self.output = self.send = self._forward = None
+        self.input = self.output = None
+        self.send = getattr(self, 'send', None)
+        self._forward = getattr(self, '_forward', None)
         self.link_methods()
 
     def __str__(self):

@@ -22,3 +22,10 @@ class Msg(object):
 
     def serialize_json(self):
         return json.dumps(self.serialize())
+
+    @classmethod
+    def deserialize_json(cls, data):
+        d = json.loads(data)
+        return cls(message=d.get('msg'),
+                   source=d.get('src'),
+                   meta=d.get('meta'))

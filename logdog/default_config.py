@@ -69,7 +69,7 @@ config = {
         'zmq-tunnel': {
             'cls': 'logdog.connectors.ZMQTunnel',
             '@sender': {'socket': 'PUSH', 'connect': ['tcp://localhost:45457']},
-            '@receiver': {'socket': 'PULL', 'bind': ['tcp://localhost:45457']},
+            '@receiver': {'socket': 'PULL', 'bind': ['tcp://*:45457']},
         }
     },
 

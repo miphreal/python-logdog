@@ -23,7 +23,7 @@ class Pipe(object):
 
     @gen.coroutine
     def start(self):
-        yield [po.start() for po in self._pipe]
+        yield [po.start() for po in reversed(self._pipe)]
 
     @gen.coroutine
     def stop(self):

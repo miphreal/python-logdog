@@ -11,6 +11,10 @@ from logdog.core.pipe import Pipe
 logger = logging.getLogger(__name__)
 
 
+import zmq.eventloop.ioloop
+zmq.eventloop.ioloop.install()
+
+
 class Application(object):
 
     def __init__(self, active_parts=None, config_path=None, loop=None):
