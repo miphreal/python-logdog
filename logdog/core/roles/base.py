@@ -1,5 +1,6 @@
 import logging
 from tornado import gen
+from tornado.concurrent import Future
 
 from ..config import Config
 from ..msg import Msg
@@ -10,20 +11,65 @@ logger = logging.getLogger(__name__)
 
 
 class BaseRole(object):
-    defaults = Config()
+    defaults = Config(singleton_behavior=False)
+    _singleton_cache = {}
 
-    def __init__(self, app, pipe, **config):
+    @classmethod
+    def factory(cls, *args, **kwargs):
+        singleton_behavior = cls.defaults.singleton_behavior or kwargs.get('singleton_behavior', False)
+        if singleton_behavior:
+            key = cls.__singleton_key__(args, kwargs)
+            if key in cls._singleton_cache:
+                return cls._singleton_cache[key]
+            new_obj = cls(*args, **kwargs)
+            cls._singleton_cache[key] = new_obj
+            return new_obj
+
+        return cls(*args, **kwargs)
+
+    @classmethod
+    def __singleton_key__(cls, passed_args, passed_kwargs):
+        return u'{!r}'.format(cls)
+
+    def __init__(self, app, pipe, namespaces, **config):
         self.app = app
         self.pipe = pipe
+        self.namespaces = namespaces
         self.config = self.defaults.copy_and_update(config)
-        self.started = False
+        self._started = False
+        self._started_futures = []
+        self._stopped_futures = []
         self.input = self.output = None
         self.send = getattr(self, 'send', None)
         self._forward = getattr(self, '_forward', None)
         self.link_methods()
 
+        if self.config.singleton_behavior:
+            logger.info('[%s] Created in a shared mode.', self)
+
     def __str__(self):
-        return '{}:{}'.format(self.__class__.__name__, self.pipe)
+        return u'{}:{}'.format(self.__class__.__name__, self.pipe)
+
+    @property
+    def started(self):
+        return self._started
+
+    @started.setter
+    def started(self, value):
+        self._started = bool(value)
+        futures = self._started_futures if self.started else self._stopped_futures
+        for future in futures:
+            future.set_result(self._started)
+
+    def wait_for_start(self):
+        f = Future()
+        self._started_futures.append(f)
+        return f
+
+    def wait_for_stop(self):
+        f = Future()
+        self._stopped_futures.append(f)
+        return f
 
     def link_methods(self):
         if getattr(self, 'send', None) is None:
@@ -78,14 +124,18 @@ class BaseRole(object):
     def _post_stop(self):
         pass
 
-    @mark_as_coroutine
     @gen.coroutine
     def start(self):
-        yield gen.maybe_future(self._pre_start())
-        self.started = True
+        if not self.started:
+            if hasattr(self.output, 'wait_for_start'):
+                yield self.output.wait_for_start()
+            yield gen.maybe_future(self._pre_start())
+            self.started = True
 
-    @mark_as_coroutine
     @gen.coroutine
     def stop(self):
-        self.started = False
-        yield gen.maybe_future(self._post_stop())
+        if self.started:
+            if hasattr(self.input, 'wait_for_stop'):
+                yield self.stop.wait_for_stop()
+            self.started = False
+            yield gen.maybe_future(self._post_stop())

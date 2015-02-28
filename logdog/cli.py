@@ -18,6 +18,7 @@ Options:
 """
 from docopt import docopt
 from logdog.app import Application
+from logdog.core.config import ConfigLoader
 from logdog.core.log import configure_logging
 from logdog.version import __version__
 
@@ -37,9 +38,13 @@ def main():
 
     configure_logging(log_level, log_format, log_custom_format)
 
+    config_path = arguments.get('--config')
+    loader = ConfigLoader(path=config_path)
+    config = loader.load_config(default_only=not config_path)
+
     Application(
-        active_parts=arguments.get('<pipe-namespace>'),
-        config_path=arguments.get('--config')
+        active_namespaces=arguments.get('<pipe-namespace>'),
+        config=config
     ).run()
 
 if __name__ == '__main__':

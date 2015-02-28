@@ -68,6 +68,8 @@ class Config(ObjectDict):
         conf.update(config)
         return conf
 
+    __call__ = copy_and_update
+
     def walk_conf(self, path, default=_unset):
         _cache = self._conf_path_cache.get(path)
         if _cache is not None:
@@ -127,6 +129,12 @@ class Config(ObjectDict):
                 return self.find_class(name=fallback)
             else:
                 raise
+
+        # sanitize conf
+        if isinstance(conf, dict):
+            for k in conf.keys():
+                if k.startswith(self.subconfig_namespace_delimiter):
+                    conf.pop(k)
 
         self._classes_cache[name] = cls, conf, namespace
         return cls, conf, namespace

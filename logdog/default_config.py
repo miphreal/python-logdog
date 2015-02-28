@@ -6,7 +6,7 @@ import os
 
 config = {
     'sources': {
-        '/var/log/*.log': {'pipe': 'pipes.file->webui'},
+        '/var/log/*.log': {'pipe': 'hey::pipes.file->webui'},
         '/var/log/*/*.log': {'pipe': 'pipes.file->webui'},
         '/var/log/syslog': 'pipes.file->webui',
     },
@@ -78,11 +78,6 @@ config = {
         'webui': {
             'cls': 'logdog.viewers.WebUI',
             'port': 8888,
-            'address': '',
-            'autoreload': False,
-            'debug': False,
-            'static_path': os.path.join(os.path.dirname(__file__), 'viewers/webui/static'),
-            'template_path': os.path.join(os.path.dirname(__file__), 'viewers/webui/assets/html'),
         }
     },
 

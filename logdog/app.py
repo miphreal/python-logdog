@@ -11,24 +11,16 @@ from logdog.core.pipe import Pipe
 logger = logging.getLogger(__name__)
 
 
-import zmq.eventloop.ioloop
-zmq.eventloop.ioloop.install()
-
-
 class Application(object):
 
-    def __init__(self, active_parts=None, config_path=None, loop=None):
+    def __init__(self, active_namespaces=None, config=None, loop=None):
         from tornado.ioloop import IOLoop
         self.loop = loop or IOLoop.current()
-        self._config_path = config_path
-        self.config = None
-        self._active_parts = active_parts
+        self.config = config
+        self.namespaces = (Config.namespace_default,)
+        self.active_namespaces = active_namespaces or [Config.namespace_default]
         self._pipes = {}
         self._register = {}
-    @gen.coroutine
-    def load_config(self):
-        loader = ConfigLoader(path=self._config_path)
-        self.config = loader.load_config(default_only=not self._config_path)
 
     @gen.coroutine
     def load_sources(self):
@@ -44,7 +36,7 @@ class Application(object):
                 conf = Config(pipe=self.config.default_pipe)
             elif isinstance(conf, dict):
                 if 'pipe' not in conf:
-                    conf['pipe'] = self.config.default_pipea
+                    conf['pipe'] = self.config.default_pipe
             else:
                 logger.warning('[APP] Weird config for "%s" (will be skipped).', ', '.join(source))
                 continue
@@ -93,6 +85,7 @@ class Application(object):
         pipe_cls = Pipe
         defaults, name, ns = self.config.find_conf(pipe, fallback=self.config.default_pipe)
         kwargs['app'] = self
+        kwargs['namespaces'] = (self.namespaces + (ns,)) if ns not in self.namespaces else self.namespaces
 
         if isinstance(defaults, dict):
             defaults.update(kwargs)
@@ -104,11 +97,11 @@ class Application(object):
 
     @gen.coroutine
     def _init(self):
-        yield self.load_config()
         yield self.load_sources()
         yield self.construct_pipes()
 
-        yield [p.start() for p in self._pipes.itervalues()]
+        yield [p.start() for p in self._pipes.itervalues()
+               if set(p.namespaces).intersection(self.active_namespaces)]
 
     def run(self):
         self.loop.add_callback(self._init)

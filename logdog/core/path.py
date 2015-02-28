@@ -15,6 +15,9 @@ class Path(object):
 
         self._f = self._last_read_line = None
 
+    def __str__(self):
+        return self.name
+
     def open(self):
         self._f = open(self.name, 'r')
         self._f.seek(self.offset)

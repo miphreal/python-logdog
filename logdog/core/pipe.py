@@ -1,6 +1,8 @@
 import logging
 from tornado import gen
-from logdog.core.path import Path
+
+from logdog.core.config import Config
+from .utils import simple_oid
 
 
 logger = logging.getLogger(__name__)
@@ -9,9 +11,13 @@ logger = logging.getLogger(__name__)
 class Pipe(object):
     def __init__(self, *pipe_elements, **kwargs):
         self.app = kwargs.pop('app')
+        self.namespaces = kwargs.get('namespaces', (Config.namespace_default,))
+        self._oid = simple_oid()
         self._pipe = [self._construct_pipe_element(name, conf, kwargs) for name, conf in pipe_elements]
         self._link_pipe_objects()
-        self._meta_name = ''
+
+    def __str__(self):
+        return 'PIPE:{}'.format(self._oid)
 
     def _construct_pipe_element(self, name, *confs):
         cls, defaults, ns = self.app.config.find_class(name=name)
@@ -19,11 +25,16 @@ class Pipe(object):
             defaults.update(conf)
         defaults['app'] = self.app
         defaults['pipe'] = self
+        defaults['namespaces'] = (self.namespaces + (ns,)) if ns not in self.namespaces else self.namespaces
+        if hasattr(cls, 'factory'):
+            cls = cls.factory
         return cls(**defaults)
 
     @gen.coroutine
     def start(self):
-        yield [po.start() for po in reversed(self._pipe)]
+        logger.debug('[%s] Starting %s', self, ' -> '.join(map(str, self._pipe)))
+        yield [po.start() for po in reversed(self._pipe)
+               if set(po.namespaces).intersection(self.app.active_namespaces)]
 
     @gen.coroutine
     def stop(self):
@@ -40,11 +51,6 @@ class Pipe(object):
             obj.relink_methods()
 
     def set_input(self, data):
+        logger.debug('[%s] Pipe initialized with %s.', self, data)
         if self._pipe:
             self._pipe[0].set_input(data)
-
-        if isinstance(data, Path):
-            self._meta_name = data.name
-
-    def __str__(self):
-        return 'PIPE:{}'.format(self._meta_name)

@@ -1,15 +1,12 @@
 import logging
+import os
 from tornado import gen
-
 from tornado.web import Application, url
 
 from logdog.core.roles.viewer import BaseViewer
 
 
 logger = logging.getLogger(__name__)
-
-
-_web_apps = {}
 
 
 class WebApp(Application):
@@ -25,29 +22,36 @@ class WebApp(Application):
 
 
 class WebUI(BaseViewer):
+    defaults = BaseViewer.defaults(
+        singleton_behavior=True,
+        port=8888,
+        address='',
+        autoreload=False,
+        debug=False,
+        static_path=os.path.join(os.path.dirname(__file__), 'static'),
+        template_path=os.path.join(os.path.dirname(__file__), 'assets/html'),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(WebUI, self).__init__(*args, **kwargs)
+        self._web_app = WebApp(**self.config)
 
     def __str__(self):
-        return u'WEBUI:{!s}'.format(self.pipe)
+        return u'WEBUI:http://{}:{}'.format(self.config.address or '0.0.0.0', self.config.port)
+
+    @classmethod
+    def __singleton_key__(cls, passed_args, passed_kwargs):
+        key = super(WebUI, cls).__singleton_key__(passed_args, passed_kwargs)
+        return u'{key}:address={address}:port={port}'.format(
+            key=key,
+            address=passed_kwargs.get('address', cls.defaults.address),
+            port=passed_kwargs.get('port', cls.defaults.port)
+        )
 
     @gen.coroutine
     def _pre_start(self):
-
-        global _web_apps
-        _web_app = _web_apps.get((self.config.address or '*', self.config.port))
-        self._web_app = _web_app
-        if _web_app:
-            logger.info('[%s] Joining %s:%s...', self,
-                        self.config.address or '*', self.config.port)
-            return
-
-        logger.debug('[%s] Loading webui app...', self)
-        _web_app = WebApp(**self.config)
-        _web_app.listen(address=self.config.address, port=self.config.port)
-        logger.info('[%s] Starting %s:%s...', self,
-                    self.config.address or '*', self.config.port)
-
-        self._web_app = _web_app
-        _web_apps[(self.config.address or '*', self.config.port)] = _web_app
+        logger.info('[%s] Starting %s:%s...', self, self.config.address or '0.0.0.0', self.config.port)
+        self._web_app.listen(address=self.config.address, port=self.config.port)
 
     def on_recv(self, data):
         if self.started:
