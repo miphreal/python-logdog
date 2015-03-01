@@ -15,8 +15,14 @@ class Pipe(object):
         self._oid = simple_oid()
         self._pipe = [self._construct_pipe_element(name, conf, kwargs) for name, conf in pipe_elements]
         self._link_pipe_objects()
+        self._active_pipe = [po for po in self._pipe
+                             if set(po.namespaces).intersection(self.app.active_namespaces)]
+        if self._active_pipe:
+            self._active_pipe[-1].set_output(None)
 
     def __str__(self):
+        if self._active_pipe and self._active_pipe[0].input:
+            return 'PIPE:{}'.format(self._active_pipe[0].input)
         return 'PIPE:{}'.format(self._oid)
 
     def _construct_pipe_element(self, name, *confs):
@@ -32,13 +38,12 @@ class Pipe(object):
 
     @gen.coroutine
     def start(self):
-        logger.debug('[%s] Starting %s', self, ' -> '.join(map(str, self._pipe)))
-        yield [po.start() for po in reversed(self._pipe)
-               if set(po.namespaces).intersection(self.app.active_namespaces)]
+        logger.debug('[%s] Starting %s', self, ' -> '.join(map(str, self._active_pipe)))
+        yield [po.start() for po in reversed(self._active_pipe)]
 
     @gen.coroutine
     def stop(self):
-        yield [po.stop() for po in self._pipe]
+        yield [po.stop() for po in self._active_pipe]
 
     def _link_pipe_objects(self):
         obj_first = self._pipe[0] if self._pipe else None
@@ -47,10 +52,10 @@ class Pipe(object):
             obj_next.set_input(obj_first)
             obj_first = obj_next
 
-        for obj in self._pipe:
-            obj.relink_methods()
+        for obj in reversed(self._pipe):
+            obj.link_methods()
 
     def set_input(self, data):
         logger.debug('[%s] Pipe initialized with %s.', self, data)
-        if self._pipe:
-            self._pipe[0].set_input(data)
+        if self._active_pipe:
+            self._active_pipe[0].set_input(data)

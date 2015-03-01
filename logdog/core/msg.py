@@ -3,7 +3,6 @@ import umsgpack
 
 
 class Msg(object):
-    version = 1
     __slots__ = (
         'message',
         'source',
@@ -11,11 +10,14 @@ class Msg(object):
         'version',
     )
 
-    def __init__(self, message, source, meta=None, version=version):
+    def __init__(self, message, source, meta=None, version=1):
         self.message = message
         self.source = source
         self.meta = meta
         self.version = version
+
+    def __str__(self):
+        return self.message
 
     def serialize(self):
         return {

@@ -1,4 +1,5 @@
 import logging
+import time
 from tornado import gen
 
 
@@ -39,3 +40,25 @@ class DefaultSleepPolicy(object):
     def reset(self):
         self._sleep_interval = self._base_sleep_interval
         self._sleep_repeat_count = self._base_sleep_repeat_count
+
+
+class GreedyPolicy(object):
+    MAX_COUNT = 100
+    TIMEOUT = 10.0
+
+    def __init__(self, max_count=MAX_COUNT, timeout=TIMEOUT):
+
+        self._max_count = max_count
+        self._count = 0
+        self._timeout = timeout
+        self._time = time.time()
+
+    def need_to_wait(self):
+        self._count += 1
+        return (self._count >= self._max_count
+                or self._time + self._timeout < time.time())
+
+    def wait(self):
+        self._count = 0
+        self._time = time.time()
+        return gen.moment

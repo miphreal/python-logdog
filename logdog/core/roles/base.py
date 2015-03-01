@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class BaseRole(object):
-    defaults = Config(singleton_behavior=False)
+    defaults = Config(
+        singleton_behavior=False,
+        start_delay=0,
+    )
     _singleton_cache = {}
 
     @classmethod
@@ -36,19 +39,18 @@ class BaseRole(object):
         self.pipe = pipe
         self.namespaces = namespaces
         self.config = self.defaults.copy_and_update(config)
-        self._started = False
+        self._started = self._singleton_was_started = False
         self._started_futures = []
         self._stopped_futures = []
         self.input = self.output = None
         self.send = getattr(self, 'send', None)
         self._forward = getattr(self, '_forward', None)
-        self.link_methods()
 
         if self.config.singleton_behavior:
             logger.info('[%s] Created in a shared mode.', self)
 
     def __str__(self):
-        return u'{}:{}'.format(self.__class__.__name__, self.pipe)
+        return u'{}:{}'.format(self.pipe, self.__class__.__name__)
 
     @property
     def started(self):
@@ -63,12 +65,18 @@ class BaseRole(object):
 
     def wait_for_start(self):
         f = Future()
-        self._started_futures.append(f)
+        if not self.started:
+            self._started_futures.append(f)
+        else:
+            f.set_result(True)
         return f
 
     def wait_for_stop(self):
         f = Future()
-        self._stopped_futures.append(f)
+        if not self.started:
+            self._stopped_futures.append(f)
+        else:
+            f.set_result(False)
         return f
 
     def link_methods(self):
@@ -77,9 +85,6 @@ class BaseRole(object):
 
         if getattr(self, '_forward', None) is None:
             self._forward = self.get_forward_method()
-
-    def relink_methods(self):
-        self.link_methods()
 
     @mark_as_proxy_method
     def _input_forwarder(self, data):
@@ -126,11 +131,21 @@ class BaseRole(object):
 
     @gen.coroutine
     def start(self):
-        if not self.started:
+        need_to_skip_start = self.started
+        if not need_to_skip_start and self.config.singleton_behavior and self._singleton_was_started:
+            need_to_skip_start = True
+
+        if not need_to_skip_start:
+            if self.config.start_delay:
+                yield gen.sleep(self.config.start_delay)
+
+            self._singleton_was_started = True
+            logger.debug('[%s] Starting...', self)
             if hasattr(self.output, 'wait_for_start'):
                 yield self.output.wait_for_start()
             yield gen.maybe_future(self._pre_start())
             self.started = True
+
 
     @gen.coroutine
     def stop(self):

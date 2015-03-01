@@ -20,7 +20,8 @@ class ZMQTunnel(BaseConnector):
 
     def __init__(self, *args, **kwargs):
         super(ZMQTunnel, self).__init__(*args, **kwargs)
-        self.ctx = self.stream = self.socket = None
+        self.stream = self.socket = None
+        self.ctx = zmq.Context()
         if 'bind' in kwargs and not isinstance(self.config.bind, (list, tuple)):
             self.config.bind = [self.config.bind]
         if 'connect' in kwargs and not isinstance(self.config.connect, (list, tuple)):
@@ -58,25 +59,17 @@ class ZMQTunnel(BaseConnector):
             for addr in self.config.connect:
                 self.socket.connect(addr)
 
-        self.stream = ZMQStream(self.socket)
+        self.stream = ZMQStream(self.socket, io_loop=self.app.io_loop)
         self.stream.on_recv(self.on_recv)
 
     @gen.coroutine
-    def start(self):
-        self._pre_start()
-        self.started = True
-
-    @gen.coroutine
     def on_recv(self, data):
-        data = Msg.deserialize_json(data[0])
+        data = Msg.deserialize_jsonb(data[0])
         ret = self._forward(data)
         if is_future(ret):
             yield ret
 
-    @gen.coroutine
     def send(self, data):
         if self.started:
-            data = data.serialize_json()
-            yield gen.Task(self.stream.send, msg=data)
-        else:
-            yield gen.moment
+            data = data.serialize_jsonb()
+            return self.stream.send(msg=data)

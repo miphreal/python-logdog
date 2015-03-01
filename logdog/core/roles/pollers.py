@@ -20,6 +20,5 @@ class BasePoller(BaseRole):
 
     @gen.coroutine
     def start(self):
-        yield gen.maybe_future(self._pre_start())
-        self.started = True
-        yield gen.maybe_future(self.poll())
+        yield super(BasePoller, self).start()
+        yield self.poll()

@@ -51,7 +51,10 @@ class WebUI(BaseViewer):
     @gen.coroutine
     def _pre_start(self):
         logger.info('[%s] Starting %s:%s...', self, self.config.address or '0.0.0.0', self.config.port)
-        self._web_app.listen(address=self.config.address, port=self.config.port)
+        try:
+            self._web_app.listen(address=self.config.address, port=self.config.port)
+        except Exception as e:
+            logger.exception(e)
 
     def on_recv(self, data):
         if self.started:

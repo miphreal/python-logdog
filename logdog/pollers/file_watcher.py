@@ -1,4 +1,5 @@
 import logging
+import time
 from tornado import gen
 from tornado.concurrent import is_future
 
@@ -10,16 +11,19 @@ logger = logging.getLogger(__name__)
 
 class FileWatcher(BasePoller):
     defaults = BasePoller.defaults.copy_and_update(
-        poll_sleep_policy='utils.sleep-policies.default',
+        poll_sleep_policy='utils.policies.growing-sleep',
+        greedy_policy='utils.policies.mostly-greedy',
         greedy_file_reading=True,
+        start_delay=2.5,
     )
 
     def __init__(self, app, **config):
         super(FileWatcher, self).__init__(app, **config)
         self.poll_sleep_policy = self.app.config.find_and_construct_class(name=self.config.poll_sleep_policy)
+        self.greedy_policy = self.app.config.find_and_construct_class(name=self.config.greedy_policy)
 
     def __str__(self):
-        return u'WATCHER:{!s}'.format(self.pipe)
+        return u'{!s}:WATCHER'.format(self.pipe)
 
     def _prepare_message(self, data):
         msg = super(FileWatcher, self)._prepare_message(data)
@@ -29,26 +33,29 @@ class FileWatcher(BasePoller):
     @gen.coroutine
     def poll(self):
         greedy_file_reading_enabled = self.config.greedy_file_reading
-        self.input.open()
 
-        yield gen.moment
-        logger.debug('[%s] Watching...', self)
+        try:
+            self.input.open()
+        except IOError as e:
+            logger.error('[%s] Stopping because of errors (%s)...', self, e)
+            self.started = False
+            yield self.pipe.stop()
+            return
 
         while self.started:
             data = self.input.read_line()
 
             if data:
                 data = self._prepare_message(data)
-                try:
-                    ret = self._forward(data)
-                    if is_future(ret):
-                        yield ret
-                except Exception as e:
-                    logger.exception(e)
+                ret = self._forward(data)
+                if is_future(ret):
+                    yield ret
 
                 self.poll_sleep_policy.reset()
-                if not greedy_file_reading_enabled:
-                    yield gen.moment
+
+                if greedy_file_reading_enabled and self.greedy_policy.need_to_wait():
+                    yield self.greedy_policy.wait()
+
             else:
                 self.input.check_stat()
                 logger.debug('[%s] Sleep on watching %ss.', self, self.poll_sleep_policy.cur_interval)

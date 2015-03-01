@@ -52,7 +52,6 @@ config = {
     'pollers': {
         'file-watcher': {
             'cls': 'logdog.pollers.FileWatcher',
-            'poll_sleep_policy': 'utils.sleep-policies.default',
         },
     },
 
@@ -83,9 +82,12 @@ config = {
 
     # utils
     'utils': {
-        'sleep-policies': {
-            'default': {
-                'cls': 'logdog.core.sleep_policies.DefaultSleepPolicy'
+        'policies': {
+            'growing-sleep': {
+                'cls': 'logdog.core.policies.DefaultSleepPolicy'
+            },
+            'mostly-greedy': {
+                'cls': 'logdog.core.policies.GreedyPolicy'
             }
         }
     }

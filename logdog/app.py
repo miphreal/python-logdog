@@ -13,14 +13,18 @@ logger = logging.getLogger(__name__)
 
 class Application(object):
 
-    def __init__(self, active_namespaces=None, config=None, loop=None):
+    def __init__(self, active_namespaces=None, config=None, io_loop=None):
         from tornado.ioloop import IOLoop
-        self.loop = loop or IOLoop.current()
+        self.io_loop = io_loop or IOLoop.current()
         self.config = config
         self.namespaces = (Config.namespace_default,)
         self.active_namespaces = active_namespaces or [Config.namespace_default]
+        logger.info('[%s] Active namespaces: %s', self, ', '.join(self.active_namespaces))
         self._pipes = {}
         self._register = {}
+
+    def __str__(self):
+        return u'APP'
 
     @gen.coroutine
     def load_sources(self):
@@ -29,6 +33,8 @@ class Application(object):
         for source, conf in self.config.sources:
             if not isinstance(source, (list, tuple)):
                 source = [source]
+            else:
+                source = list(source)
 
             if isinstance(conf, basestring):
                 conf = Config(pipe=conf)
@@ -100,9 +106,8 @@ class Application(object):
         yield self.load_sources()
         yield self.construct_pipes()
 
-        yield [p.start() for p in self._pipes.itervalues()
-               if set(p.namespaces).intersection(self.active_namespaces)]
+        yield [p.start() for p in self._pipes.itervalues()]
 
     def run(self):
-        self.loop.add_callback(self._init)
-        self.loop.start()
+        self.io_loop.add_callback(self._init)
+        self.io_loop.start()
