@@ -1,12 +1,9 @@
-import os
-
-
 # options must be valid python identifiers, e.g. "default_pipe"
 # names can be any string, e.g. "file->webui" (^::,@)
 
 config = {
     'sources': {
-        '/var/log/*.log': {'pipe': 'hey::pipes.file->webui'},
+        '/var/log/*.log': {'pipe': 'pipes.file->webui'},
         '/var/log/*/*.log': {'pipe': 'pipes.file->webui'},
         '/var/log/syslog': 'pipes.file->webui',
     },
@@ -14,18 +11,6 @@ config = {
     'default_pipe': 'pipes.file->webui',
 
     'pipes': {
-        # simple pipe
-        'pipe-example1': [
-            'pollers.file-watcher',
-            'viewers.webui',
-        ],
-
-        # simple pipe with namespace
-        'pipe-example2': [
-            'ns::pollers.file-watcher',
-            'ns::viewers.webui',
-        ],
-
         'file->webui': [
             'watch::pollers.file-watcher',
             'watch::processors.stripper',
@@ -33,19 +18,6 @@ config = {
             'view::connectors.zmq-tunnel@receiver',
             'view::viewers.webui',
         ],
-
-        # TODO. support the following format
-        'f->webui': [
-            {'watch': [
-                'pollers.file-watcher',
-                'processors.stripper',
-                'connectors.zmq-tunnel@sender',
-            ]},
-            {'view': [
-                'connectors.zmq-tunnel@receiver',
-                'viewers.webui',
-            ]}
-        ]
     },
 
     # pollers

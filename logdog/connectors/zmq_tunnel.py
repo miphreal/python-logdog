@@ -19,13 +19,15 @@ class ZMQTunnel(BaseConnector):
     )
 
     def __init__(self, *args, **kwargs):
-        super(ZMQTunnel, self).__init__(*args, **kwargs)
+        if not isinstance(kwargs.get('bind', ()), (list, tuple)):
+            kwargs['bind'] = (kwargs['bind'],)
+        if not isinstance(kwargs.get('connect', ()), (list, tuple)):
+            kwargs['connect'] = (kwargs['connect'],)
+
         self.stream = self.socket = None
         self.ctx = zmq.Context()
-        if 'bind' in kwargs and not isinstance(self.config.bind, (list, tuple)):
-            self.config.bind = [self.config.bind]
-        if 'connect' in kwargs and not isinstance(self.config.connect, (list, tuple)):
-            self.config.connect = [self.config.connect]
+
+        super(ZMQTunnel, self).__init__(*args, **kwargs)
 
     def __str__(self):
         return u'ZMQ-TUNNEL:{}:{}'.format(self.config.socket,

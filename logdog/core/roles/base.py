@@ -19,7 +19,7 @@ class BaseRole(object):
 
     @classmethod
     def factory(cls, *args, **kwargs):
-        singleton_behavior = cls.defaults.singleton_behavior or kwargs.get('singleton_behavior', False)
+        singleton_behavior = kwargs.get('singleton_behavior', False) or cls.defaults.singleton_behavior
         if singleton_behavior:
             key = cls.__singleton_key__(args, kwargs)
             if key in cls._singleton_cache:
@@ -34,6 +34,10 @@ class BaseRole(object):
     def __singleton_key__(cls, passed_args, passed_kwargs):
         return u'{!r}'.format(cls)
 
+    @property
+    def is_singleton(self):
+        return self.config.singleton_behavior
+
     def __init__(self, app, pipe, namespaces, **config):
         self.app = app
         self.pipe = pipe
@@ -45,9 +49,6 @@ class BaseRole(object):
         self.input = self.output = None
         self.send = getattr(self, 'send', None)
         self._forward = getattr(self, '_forward', None)
-
-        if self.config.singleton_behavior:
-            logger.info('[%s] Created in a shared mode.', self)
 
     def __str__(self):
         return u'{}:{}'.format(self.pipe, self.__class__.__name__)
@@ -132,7 +133,7 @@ class BaseRole(object):
     @gen.coroutine
     def start(self):
         need_to_skip_start = self.started
-        if not need_to_skip_start and self.config.singleton_behavior and self._singleton_was_started:
+        if not need_to_skip_start and self.is_singleton and self._singleton_was_started:
             need_to_skip_start = True
 
         if not need_to_skip_start:
@@ -146,6 +147,8 @@ class BaseRole(object):
             yield gen.maybe_future(self._pre_start())
             self.started = True
 
+            if self.is_singleton:
+                logger.info('[%s] Started in a shared mode.', self)
 
     @gen.coroutine
     def stop(self):

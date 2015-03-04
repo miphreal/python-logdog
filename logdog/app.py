@@ -41,8 +41,7 @@ class Application(object):
             elif not conf:
                 conf = Config(pipe=self.config.default_pipe)
             elif isinstance(conf, dict):
-                if 'pipe' not in conf:
-                    conf['pipe'] = self.config.default_pipe
+                conf.setdefault('pipe', self.config.default_pipe)
             else:
                 logger.warning('[APP] Weird config for "%s" (will be skipped).', ', '.join(source))
                 continue

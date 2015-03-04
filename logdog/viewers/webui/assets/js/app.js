@@ -127,7 +127,7 @@
     }]);
 
     app.service('Socket', ['$timeout', function ($timeout) {
-        return function (url, reconnectDelay) {
+        return function (url, reconnectDelay, maxReconnectDelay) {
             var callbacks = {
                 'open': [],
                 'message': [],
@@ -154,6 +154,7 @@
             var ws = null;
 
             reconnectDelay = reconnectDelay || 1000;
+            maxReconnectDelay = maxReconnectDelay || 32000;
             function initSocket() {
                 ws = new WebSocket(url);
 
@@ -179,6 +180,7 @@
                     handleEvent(events.CLOSE, event);
                     $timeout(initSocket, reconnectDelay);
                     reconnectDelay *= 2;
+                    reconnectDelay = reconnectDelay > maxReconnectDelay ? maxReconnectDelay : reconnectDelay;
                 };
 
                 return ws;
