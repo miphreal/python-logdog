@@ -21,8 +21,6 @@ class Pipe(object):
             self._active_pipe[-1].set_output(None)
 
     def __str__(self):
-        if self._active_pipe and self._active_pipe[0].input:
-            return 'PIPE:{}'.format(self._active_pipe[0].input)
         return 'PIPE:{}'.format(self._oid)
 
     def _construct_pipe_element(self, name, *confs):
@@ -36,10 +34,20 @@ class Pipe(object):
             cls = cls.factory
         return cls(**defaults)
 
+    def _is_valid_pipe(self):
+        in_ = self._active_pipe[0] if self._active_pipe else None
+        for p in self._active_pipe[1:]:
+            if in_.output is not p:
+                logger.warning('[%s] Lost connectivity in the pipe. Check the configuration. %s -x-> %s', self, in_, p)
+                return False
+            in_ = p
+        return True
+
     @gen.coroutine
     def start(self):
-        logger.debug('[%s] Starting %s', self, ' -> '.join(map(str, self._active_pipe)))
-        yield [po.start() for po in reversed(self._active_pipe)]
+        if self._is_valid_pipe():
+            logger.debug('[%s] Starting %s', self, ' -> '.join(map(str, self._active_pipe)))
+            yield [po.start() for po in reversed(self._active_pipe)]
 
     @gen.coroutine
     def stop(self):
