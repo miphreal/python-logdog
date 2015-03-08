@@ -3,39 +3,43 @@
 
 config = {
     'sources': {
-        '/var/log/*.log': {'handler': 'pipes.file-to-webui'},
-        '/var/log/*/*.log': {'handler': 'pipes.file-to-webui'},
-        '/var/log/syslog': 'pipes.file-to->webui',
+        '/var/log/*.log': {'handler': 'to-web'},
+        '/var/log/*/*.log': {'handler': 'to-web'},
+        '/var/log/syslog': 'pipes.to-web',
     },
 
     'pipes': {
-        'default': 'logdog.core.roles.pipe.Pipe',
+        'default': 'logdog.pipes.Pipe',
 
-        'file-to-webui2': [
-            'watch pollers.file-watcher',
+        'to-web': [
             'watch processors.stripper',
             'watch connectors.zmq-tunnel@sender',
             'view connectors.zmq-tunnel@receiver',
             'view viewers.webui',
         ],
-        'file-to-webui1': {
-            'cls': 'logdog.core.pipe.Pipe',
+        'experiment-x001': {
+            'cls': 'logdog.pipes.Pipe',
             '*': [
-                'watch pollers.file-watcher',
-                'watch,view processors.stripper',
-                {'utils.forwarders.round-robbin': [
-                    'view viewers.console',
-                    [
-                        'watch connectors.zmq-tunnel@sender',
-                        'view connectors.zmq-tunnel@receiver',
-                        {'utils.forwarders.broadcast': [
+                'watch processors.stripper',
+                {'forwarders.broadcast': [
+                    'watch viewers.console',
+                    {'pipes.default': [
+                        {'watch connectors.zmq-tunnel@sender': {'connect': 'tcp://localhost:7789'}},
+                        {'view connectors.zmq-tunnel@receiver': {'bind': 'tcp://*:7789'}},
+                        {'view forwarders.round-robin': [
                             'view viewers.webui',
                             'view viewers.null',
                         ]}
-                    ],
-                    {}
+                    ]},
                 ]},
             ],
+        }
+    },
+
+    'options': {
+        'sources': {
+            'default_handler': 'pipes.default',
+            'default_watcher': 'pollers.file-watcher',
         }
     },
 
@@ -43,6 +47,7 @@ config = {
     'pollers': {
         'file-watcher': {
             'cls': 'logdog.pollers.FileWatcher',
+            'namespaces': ['watch'],
         },
     },
 
@@ -52,6 +57,12 @@ config = {
     # processors
     'processors': {
         'stripper': {'cls': 'logdog.processors.Stripper'},
+    },
+
+    # forwarders
+    'forwarders': {
+        'broadcast': 'logdog.forwarders.Broadcast',
+        'round-robin': 'logdog.forwarders.RoundRobin',
     },
 
     # connectors
@@ -65,10 +76,17 @@ config = {
 
     # viewers
     'viewers': {
+        'default': 'logdog.viewers.Null',
+
         'webui': {
             'cls': 'logdog.viewers.WebUI',
             'port': 8888,
-        }
+        },
+        'console': {
+            'cls': 'logdog.viewers.Console',
+            'redirect_to': 'stdout',
+        },
+        'null': 'logdog.viewers.Null',
     },
 
     # utils
@@ -81,30 +99,5 @@ config = {
                 'cls': 'logdog.core.policies.GreedyPolicy'
             }
         }
-    },
-
-    # convention
-    'classic-class1a': 'importable.path.to.Class',  # will be converted to `classic-class2a`
-    'classic-class2a': {'cls': 'importable.path.to.Class'},
-
-    'classic-class1b': {'kw': 'val'},  # will be converted to `classic-class2bc`
-    'classic-class1c': ['val', '...'],  # will be converted to `classic-class2bc`
-    'classic-class2bc': {
-        'cls': 'will be used fallback parameter (that was specified in the code)',
-        # '*': ['val', '...'],  # <- classic-class1b
-        # '**': {'kw': 'val'},  # <- classic-class1c
-    },
-
-    'classic-class3': {
-        'cls': 'importable.path.to.Class or path.inside.the-config',
-        '*': [1, 2, 3],  # list of default `*args`
-        'kw1': 'val1',  # all other class options that will be passed as `**kwargs`
-        'kw2': 'val2',  # ...
-        '**': {
-            'kw1': 'val1',  # the same as previous lines
-            'kw2': 'val2',  # ...
-        },
-        '@subconf1': {'kw1': 'val1x'},
-        '@subconf2': {'kw1': 'val1y'},
-    },
+    }
 }

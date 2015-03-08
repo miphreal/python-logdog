@@ -21,4 +21,5 @@ class BasePoller(BaseRole):
     @gen.coroutine
     def start(self):
         yield super(BasePoller, self).start()
-        yield self.poll()
+        if self.started:
+            yield self.poll()

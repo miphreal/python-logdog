@@ -23,7 +23,7 @@ class FileWatcher(BasePoller):
         self.greedy_policy = self.app.config.find_and_construct_class(name=self.config.greedy_policy)
 
     def __str__(self):
-        return u'{!s}:WATCHER'.format(self.parent)
+        return u'WATCHER:{!s}'.format(self.input)
 
     def _prepare_message(self, data):
         msg = super(FileWatcher, self)._prepare_message(data)
@@ -36,10 +36,11 @@ class FileWatcher(BasePoller):
 
         try:
             self.input.open()
+            logger.info('[%s] Opened %s.', self, self.input)
         except IOError as e:
-            logger.error('[%s] Stopping because of errors (%s)...', self, e)
+            logger.error('[%s] Stopping watching because of errors (%s)...', self, e)
             self.started = False
-            yield self.pipe.stop()
+            yield self.stop()
             return
 
         while self.started:

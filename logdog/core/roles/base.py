@@ -33,11 +33,19 @@ class BaseRole(object):
 
     @classmethod
     def __singleton_key__(cls, passed_args, passed_kwargs):
-        return u'{!r}'.format(cls)
+        return u'{}.{}:{}'.format(cls.__module__,
+                                  cls.__name__, passed_kwargs.get('config_name', 'unknown'))
 
     @property
     def is_unique(self):
         return self.config.unique
+
+    @property
+    def is_active(self):
+        return self.started \
+               or self.config.namespace_default in self.namespaces \
+               or self.config.namespace_default in self.app.active_namespaces \
+               or bool(set(self.namespaces).intersection(self.app.active_namespaces))
 
     def __init__(self, *items, **config):
         self._oid = simple_oid()
@@ -56,7 +64,20 @@ class BaseRole(object):
         self._forward = getattr(self, '_forward', None)
 
     def __str__(self):
-        return u'{}:{}'.format(self.parent, self.__class__.__name__)
+        return u'{}:{}'.format(self.__class__.__name__, self.parent)
+
+    @property
+    def active_items(self):
+        return [i for i in self.items if i.is_active]
+
+    def construct_subrole(self, name, conf):
+        if isinstance(conf, (list, tuple)):
+            conf = {'*': conf}
+        elif conf is None:
+            conf = {}
+        conf['app'] = self.app
+        conf['parent'] = self
+        return self.app.config.find_and_construct_class(name=name, kwargs=conf)
 
     @property
     def started(self):
@@ -68,6 +89,8 @@ class BaseRole(object):
         futures = self._started_futures if self.started else self._stopped_futures
         for future in futures:
             future.set_result(self._started)
+        if self._started:
+            logger.debug('[%s] Started.', self)
 
     def wait_for_start(self):
         f = Future()
@@ -137,7 +160,7 @@ class BaseRole(object):
 
     @gen.coroutine
     def start(self):
-        need_to_skip_start = self.started
+        need_to_skip_start = self.started or not self.is_active
         if not need_to_skip_start and self.is_unique and self._unique_start_lock:
             need_to_skip_start = True
 
@@ -158,7 +181,7 @@ class BaseRole(object):
 
             # notify that the obj will be reused for other pipes in case of uniqueness
             if self.is_unique:
-                logger.info('[%s] Started in a shared mode (will be reused if requested in other pipes).', self)
+                logger.debug('[%s] Started in a shared mode.', self)
 
     @gen.coroutine
     def stop(self):

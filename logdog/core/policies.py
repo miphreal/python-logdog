@@ -8,12 +8,12 @@ logger = logging.getLogger(__name__)
 
 class DefaultSleepPolicy(object):
     BASE_SLEEP_INTERVAL = 0.5
-    MAX_SLEEP_INTERVAL = 5 * 60.
+    MAX_SLEEP_INTERVAL = 3 * 60.
     SLEEP_REPEAT_COUNT = 10
 
     def __init__(self, sleep_interval=BASE_SLEEP_INTERVAL,
                  max_sleep_interval=MAX_SLEEP_INTERVAL,
-                 sleep_repeat_count=SLEEP_REPEAT_COUNT):
+                 sleep_repeat_count=SLEEP_REPEAT_COUNT, **kwargs):
 
         self._base_sleep_interval = self._sleep_interval = sleep_interval
         self._max_sleep_interval = max_sleep_interval
@@ -46,7 +46,7 @@ class GreedyPolicy(object):
     MAX_COUNT = 100
     TIMEOUT = 10.0
 
-    def __init__(self, max_count=MAX_COUNT, timeout=TIMEOUT):
+    def __init__(self, max_count=MAX_COUNT, timeout=TIMEOUT, **kwargs):
 
         self._max_count = max_count
         self._count = 0

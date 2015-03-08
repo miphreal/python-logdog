@@ -1,9 +1,10 @@
 import glob
 from itertools import chain
 import logging
+import os
 from tornado import gen
 
-from logdog.core.config import Config
+from logdog.core.config import Config, handle_as_list
 from logdog.core.path import Path
 
 
@@ -12,13 +13,16 @@ logger = logging.getLogger(__name__)
 
 class Application(object):
 
-    def __init__(self, active_namespaces=None, config=None, io_loop=None):
+    def __init__(self, active_namespaces=None, config=None, io_loop=None,
+                 force_handler=None, force_sources=None):
         from tornado.ioloop import IOLoop
         self.io_loop = io_loop or IOLoop.current()
         self.config = config
+        self.force_handler = force_handler
+        self.force_sources = force_sources
         self.namespaces = (Config.namespace_default,)
         self.active_namespaces = active_namespaces or [Config.namespace_default]
-        logger.info('[%s] Active namespaces: %s', self, ', '.join(self.active_namespaces))
+        logger.debug('[%s] Active namespaces: %s', self, ', '.join(self.active_namespaces))
         self._pipes = {}
         self._register = {}
 
@@ -29,7 +33,13 @@ class Application(object):
     def load_sources(self):
         flat_files = set()
         flat_patterns = set()
-        for source, conf in self.config.sources:
+
+        sources = self.config.sources
+        if self.force_sources:
+            self.force_sources = self.force_sources.split(':')
+            sources = handle_as_list(self.force_sources)
+
+        for source, conf in sources:
             if not isinstance(source, (list, tuple)):
                 source = [source]
             else:
@@ -38,12 +48,15 @@ class Application(object):
             if isinstance(conf, basestring):
                 conf = Config(handler=conf)
             elif not conf:
-                conf = Config(handler=self.config.default_pipe)
+                conf = Config(handler=self.config.options.sources.default_handler)
             elif isinstance(conf, dict):
-                conf.setdefault('handler', self.config.default_pipe)
+                conf.setdefault('handler', self.config.options.sources.default_handler)
             else:
                 logger.warning('[APP] Weird config for "%s" (will be skipped).', ', '.join(source))
                 continue
+
+            if self.force_handler:
+                conf['handler'] = self.force_handler
 
             intersection_patterns = flat_patterns.intersection(source)
             if intersection_patterns:
@@ -54,7 +67,8 @@ class Application(object):
             source.sort()
             source = tuple(source)
 
-            files = set(chain(*map(glob.glob, source)))
+            files = chain(*map(glob.glob, source))
+            files = set(filter(os.path.isfile, files))
 
             intersection_files = flat_files.intersection(files)
             if intersection_files:
@@ -80,22 +94,31 @@ class Application(object):
 
     @gen.coroutine
     def construct_pipes(self):
+        default_watcher = self.config.options.sources.default_watcher
         for conf, files in self._register.itervalues():
             conf['app'] = self
             conf['parent'] = self
 
             for f in files:
-                pipe = self.config.find_and_construct_class(name=conf['handler'],
-                                                            fallback='pipes.default', **conf)
-                pipe.set_input(Path(f, 0, None))
-                self._pipes[f] = pipe
+                watcher = self.config.find_and_construct_class(
+                    name=conf.get('watcher', default_watcher), kwargs=conf)
+                pipe = self.config.find_and_construct_class(name=conf['handler'], kwargs=conf)
+
+                watcher.set_input(Path(f, 0, None))
+                watcher.set_output(pipe)
+                pipe.link_methods()
+                watcher.link_methods()
+
+                self._pipes[f] = watcher, pipe
 
     @gen.coroutine
     def _init(self):
         yield self.load_sources()
         yield self.construct_pipes()
 
-        yield [p.start() for p in self._pipes.itervalues()]
+        pipes = [p for _, p in self._pipes.itervalues()]
+        watchers = [w for w, _ in self._pipes.itervalues()]
+        yield [i.start() for i in chain(pipes, watchers)]
 
     def run(self):
         self.io_loop.add_callback(self._init)

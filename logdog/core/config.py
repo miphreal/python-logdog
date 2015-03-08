@@ -16,18 +16,6 @@ logger = logging.getLogger(__name__)
 _unset = object()
 
 
-ROOT_CONFIG_CONTAINER = (
-    'sources',
-    'pipes',
-    'pollers',
-    'collectors',
-    'processors',
-    'connectors',
-    'viewers',
-    'utils',
-)
-
-
 def handle_as_list(conf):
     if isinstance(conf, dict):
         return conf.iteritems()
@@ -39,7 +27,7 @@ def handle_as_list(conf):
             elif isinstance(item, dict) and len(item) == 1:
                 l.append(item.items()[0])
             elif isinstance(item, (list, tuple)) and item:
-                l.append((item[0], item[1:]))
+                l.append((item[0], item[1:] if len(item) > 2 else item[1]))
             else:
                 l.append((item, None))
         return l
@@ -121,7 +109,8 @@ class Config(ObjectDict):
         return target, name, namespace.split(',')
 
     def find_class(self, name, fallback=None):
-        _cache = self._classes_cache.get(name)
+        initial_name = name
+        _cache = self._classes_cache.get(initial_name)
         if _cache is not None:
             return copy.deepcopy(_cache)
 
@@ -134,8 +123,9 @@ class Config(ObjectDict):
         try:
             cls = conf.pop('cls')
         except KeyError:
-            if fallback:
-                cls, f_conf, f_ns = self.find_class(name=fallback)
+            if name != 'default':
+                fallback = fallback if fallback else ''.join(name.rpartition('.')[:-1] + ('default',))
+                cls, f_name, f_conf, f_ns = self.find_class(name=fallback)
                 f_conf.update(conf)
                 conf = f_conf
                 namespaces = list(set(namespaces).union(f_ns))
@@ -153,25 +143,32 @@ class Config(ObjectDict):
             except ImportError:
                 logger.warning('Could not import "%s".', cls)
 
-        self._classes_cache[name] = cls, conf, tuple(namespaces)
-        return cls, copy.deepcopy(conf), tuple(namespaces)
+        if 'namespaces' in conf:
+            if tuple(namespaces) == (self.namespace_default,):
+                namespaces = tuple(conf['namespaces'])
+            else:
+                namespaces = tuple(set(namespaces).union(conf['namespaces']))
 
-    def find_and_construct_class(self, name, fallback=None, **kwargs):
-        found_cls, defaults, ns = self.find_class(name=name, fallback=fallback)
-        args = ()
-        kw = kwargs
+        self._classes_cache[initial_name] = cls, name, conf, tuple(namespaces)
+        return cls, name, copy.deepcopy(conf), tuple(namespaces)
 
-        if isinstance(defaults, dict):
+    def find_and_construct_class(self, name, fallback=None, args=(), kwargs=None):
+        found_cls, name, defaults, ns = self.find_class(name=name, fallback=fallback)
+
+        if kwargs:
             defaults.update(kwargs)
-            kw = defaults
-            args = kw.pop('*', args)
-            kw.update(kw.pop('**', {}))
 
-        elif isinstance(defaults, (list, tuple)):
-            args = defaults
+        kw = defaults
+        kw.update(kw.pop('**', {}))
+        kw['namespaces'] = set(kw.get('namespaces', ())).union(ns)
+        kw['config_name'] = name
+
+        args = kw.pop('*', args)
 
         if hasattr(found_cls, 'factory'):
             found_cls = found_cls.factory
+
+        args = handle_as_list(args)
 
         return found_cls(*args, **kw)
 

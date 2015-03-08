@@ -7,33 +7,25 @@ from .base import BaseRole
 logger = logging.getLogger(__name__)
 
 
-class Pipe(BaseRole):
+class BasePipe(BaseRole):
+    defaults = BaseRole.defaults.copy_and_update(
+        unique=True
+    )
 
     def __init__(self, *args, **kwargs):
-        super(Pipe, self).__init__(*args, **kwargs)
-
-        self._pipe = [self._construct_pipe_element(name, conf, kwargs) for name, conf in self.items]
+        super(BasePipe, self).__init__(*args, **kwargs)
+        self.items = [self.construct_subrole(name, conf) for name, conf in self.items]
         self._link_pipe_objects()
-        self._active_pipe = [po for po in self._pipe
-                             if set(po.namespaces).intersection(self.app.active_namespaces)]
-        if self._active_pipe:
-            self._active_pipe[-1].set_output(None)
+        if self.items:
+            self.items[-1].set_output(None)
 
     def __str__(self):
         return 'PIPE:{}'.format(self._oid)
 
-    def _construct_pipe_element(self, name, *confs):
-        conf = {}
-        for c in filter(bool, confs):
-            conf.update(c)
-        conf['app'] = self.app
-        conf['parent'] = self
-
-        return self.app.config.find_and_construct_class(name=name, **conf)
-
     def _is_valid_pipe(self):
-        in_ = self._active_pipe[0] if self._active_pipe else None
-        for p in self._active_pipe[1:]:
+        active_pipe = self.active_items
+        in_ = active_pipe[0] if active_pipe else None
+        for p in active_pipe[1:]:
             if in_.output is not p:
                 logger.warning('[%s] Lost connectivity in the pipe. Check the configuration. %s -x-> %s', self, in_, p)
                 return False
@@ -42,25 +34,38 @@ class Pipe(BaseRole):
 
     @gen.coroutine
     def start(self):
-        if self._is_valid_pipe():
-            logger.debug('[%s] Starting %s', self, ' -> '.join(map(str, self._active_pipe)))
-            yield [po.start() for po in reversed(self._active_pipe)]
+        if not self.started and self._is_valid_pipe():
+            logger.debug('[%s] Starting %s', self, ' -> '.join(map(str, self.items)))
+            yield [po.start() for po in reversed(self.items)]
+            yield super(BasePipe, self).start()
 
     @gen.coroutine
     def stop(self):
-        yield [po.stop() for po in self._active_pipe]
+        if self.started:
+            yield [po.stop() for po in self.items]
+            yield super(BasePipe, self).stop()
 
     def _link_pipe_objects(self):
-        obj_first = self._pipe[0] if self._pipe else None
-        for obj_next in self._pipe[1:]:
+        active_pipe = self.active_items
+        obj_first = active_pipe[0] if active_pipe else None
+        for obj_next in active_pipe[1:]:
             obj_first.set_output(obj_next)
             obj_next.set_input(obj_first)
             obj_first = obj_next
 
-        for obj in reversed(self._pipe):
+        for obj in reversed(active_pipe):
             obj.link_methods()
 
-    def set_input(self, data):
-        logger.debug('[%s] Pipe initialized with %s.', self, data)
-        if self._active_pipe:
-            self._active_pipe[0].set_input(data)
+    def set_input(self, obj):
+        logger.debug('[%s] Pipe initialized with %s.', self, obj)
+        if self.active_items:
+            self.active_items[0].set_input(obj)
+
+    def set_output(self, obj):
+        if self.active_items:
+            self.active_items[-1].set_output(obj)
+
+    def _input_forwarder(self, data):
+        if self.active_items:
+            self._input_forwarder = self.active_items[0].send
+            return self._input_forwarder(data)

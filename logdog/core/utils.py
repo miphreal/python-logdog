@@ -1,5 +1,10 @@
+import logging
 from string import ascii_letters
 import time
+import functools
+
+
+logger = logging.getLogger(__name__)
 
 
 def mark_as_coroutine(func):
@@ -28,3 +33,13 @@ def simple_oid():
         oid.insert(0, ascii_letters[x % n])
         x /= n
     return ''.join(oid)
+
+
+def debug_deco(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logger.exception(e)
+    return wrapper

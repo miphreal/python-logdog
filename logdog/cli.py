@@ -14,7 +14,10 @@ Options:
   -v --verbose              Run in verbose mode
   -l --log-level=<level>    Set logging level [default: INFO]
   -f --log-format=<format>  Set logging format [default: quiet]
-  -c --config=<config>      Configuration file
+  -c --config=<config>      Configuration file (yaml config)
+  -s --sources=<file:...>   Force specify files to be watched
+  -H --handler=<handler>    Force set handler for all sources
+                            (e.g. --handler=viewers.console)
 """
 from docopt import docopt
 from logdog.app import Application
@@ -44,7 +47,9 @@ def main():
 
     Application(
         active_namespaces=arguments.get('<pipe-namespace>'),
-        config=config
+        config=config,
+        force_handler=arguments.get('--handler'),
+        force_sources=arguments.get('--sources'),
     ).run()
 
 if __name__ == '__main__':

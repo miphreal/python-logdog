@@ -176,7 +176,7 @@
 
                 ws.onclose = function (event) {
                     console.log('socket close');
-                    console.log('trying to reconnect...');
+                    console.log('trying to reconnect... Next try in ' + reconnectDelay + 'ms');
                     handleEvent(events.CLOSE, event);
                     $timeout(initSocket, reconnectDelay);
                     reconnectDelay *= 2;
