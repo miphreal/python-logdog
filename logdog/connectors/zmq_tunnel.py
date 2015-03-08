@@ -12,7 +12,7 @@ zmq.eventloop.ioloop.install()
 
 class ZMQTunnel(BaseConnector):
     defaults = BaseConnector.defaults(
-        singleton_behavior=True,
+        unique=True,
         connect=(),
         bind=(),
         socket=None,

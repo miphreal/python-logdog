@@ -4,7 +4,7 @@ from tornado.concurrent import Future
 
 from ..config import Config
 from ..msg import Msg
-from ..utils import mark_as_coroutine, mark_as_proxy_method, is_proxy
+from ..utils import mark_as_proxy_method, is_proxy, simple_oid
 
 
 logger = logging.getLogger(__name__)
@@ -12,15 +12,16 @@ logger = logging.getLogger(__name__)
 
 class BaseRole(object):
     defaults = Config(
-        singleton_behavior=False,
+        unique=False,  # means, the object will be singleton / shared
         start_delay=0,
     )
     _singleton_cache = {}
 
     @classmethod
     def factory(cls, *args, **kwargs):
-        singleton_behavior = kwargs.get('singleton_behavior', False) or cls.defaults.singleton_behavior
-        if singleton_behavior:
+        unique = kwargs.get('unique', False) or cls.defaults.unique
+        if unique:
+            # if unique, than behave like a singleton
             key = cls.__singleton_key__(args, kwargs)
             if key in cls._singleton_cache:
                 return cls._singleton_cache[key]
@@ -35,15 +36,19 @@ class BaseRole(object):
         return u'{!r}'.format(cls)
 
     @property
-    def is_singleton(self):
-        return self.config.singleton_behavior
+    def is_unique(self):
+        return self.config.unique
 
-    def __init__(self, app, pipe, namespaces, **config):
-        self.app = app
-        self.pipe = pipe
-        self.namespaces = namespaces
+    def __init__(self, *items, **config):
+        self._oid = simple_oid()
+
+        self.app = config.pop('app')
+        self.parent = config.pop('parent')
+        self.namespaces = config.pop('namespaces', None) or self.app.namespaces
         self.config = self.defaults.copy_and_update(config)
-        self._started = self._singleton_was_started = False
+        self.items = items
+
+        self._started = self._unique_start_lock = False
         self._started_futures = []
         self._stopped_futures = []
         self.input = self.output = None
@@ -51,7 +56,7 @@ class BaseRole(object):
         self._forward = getattr(self, '_forward', None)
 
     def __str__(self):
-        return u'{}:{}'.format(self.pipe, self.__class__.__name__)
+        return u'{}:{}'.format(self.parent, self.__class__.__name__)
 
     @property
     def started(self):
@@ -133,27 +138,33 @@ class BaseRole(object):
     @gen.coroutine
     def start(self):
         need_to_skip_start = self.started
-        if not need_to_skip_start and self.is_singleton and self._singleton_was_started:
+        if not need_to_skip_start and self.is_unique and self._unique_start_lock:
             need_to_skip_start = True
 
         if not need_to_skip_start:
+            if self.is_unique:
+                self._unique_start_lock = True
+
             if self.config.start_delay:
                 yield gen.sleep(self.config.start_delay)
 
-            self._singleton_was_started = True
             logger.debug('[%s] Starting...', self)
             if hasattr(self.output, 'wait_for_start'):
-                yield self.output.wait_for_start()
+                yield gen.maybe_future(self.output.wait_for_start())
             yield gen.maybe_future(self._pre_start())
+
+            # mark obj as 'started'
             self.started = True
 
-            if self.is_singleton:
-                logger.info('[%s] Started in a shared mode.', self)
+            # notify that the obj will be reused for other pipes in case of uniqueness
+            if self.is_unique:
+                logger.info('[%s] Started in a shared mode (will be reused if requested in other pipes).', self)
 
     @gen.coroutine
     def stop(self):
         if self.started:
+            logger.debug('[%s] Stopping...', self)
             if hasattr(self.input, 'wait_for_stop'):
-                yield self.stop.wait_for_stop()
+                yield self.input.wait_for_stop()
             self.started = False
             yield gen.maybe_future(self._post_stop())

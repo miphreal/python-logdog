@@ -17,13 +17,13 @@ class FileWatcher(BasePoller):
         start_delay=2.5,
     )
 
-    def __init__(self, app, **config):
-        super(FileWatcher, self).__init__(app, **config)
+    def __init__(self, *args, **kwargs):
+        super(FileWatcher, self).__init__(*args, **kwargs)
         self.poll_sleep_policy = self.app.config.find_and_construct_class(name=self.config.poll_sleep_policy)
         self.greedy_policy = self.app.config.find_and_construct_class(name=self.config.greedy_policy)
 
     def __str__(self):
-        return u'{!s}:WATCHER'.format(self.pipe)
+        return u'{!s}:WATCHER'.format(self.parent)
 
     def _prepare_message(self, data):
         msg = super(FileWatcher, self)._prepare_message(data)

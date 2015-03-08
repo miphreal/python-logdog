@@ -1,4 +1,5 @@
 import copy
+import logging
 from tornado.util import ObjectDict, import_object
 from yaml import load
 try:
@@ -7,6 +8,9 @@ except ImportError:
     from yaml import Loader
 
 from logdog.default_config import config as logdog_default_config
+
+
+logger = logging.getLogger(__name__)
 
 
 _unset = object()
@@ -47,7 +51,7 @@ def is_importable(key):
 
 
 class Config(ObjectDict):
-    namespace_delimiter = '::'
+    namespace_delimiter = ' '
     namespace_default = '*'
     subconfig_namespace_delimiter = '@'
 
@@ -97,7 +101,7 @@ class Config(ObjectDict):
         extra_conf = None
         if self.subconfig_namespace_delimiter in name:
             name, tmp, extra_conf = name.rpartition(self.subconfig_namespace_delimiter)
-            extra_conf_relative = '{}.@{}'.format(name, extra_conf)
+            extra_conf_relative = '{}.{}{}'.format(name, self.subconfig_namespace_delimiter, extra_conf)
             extra_conf = self.walk_conf(extra_conf_relative, default=None)
 
         try:
@@ -114,42 +118,62 @@ class Config(ObjectDict):
         elif extra_conf and isinstance(target, dict) and isinstance(extra_conf, dict):
             target.update(extra_conf)
 
-        return target, name, namespace
+        return target, name, namespace.split(',')
 
     def find_class(self, name, fallback=None):
         _cache = self._classes_cache.get(name)
         if _cache is not None:
-            return _cache
+            return copy.deepcopy(_cache)
+
+        conf, name, namespaces = self.find_conf(name, fallback=None)
+        if isinstance(conf, basestring):
+            conf = {'cls': conf}
+        elif isinstance(conf, (list, tuple)):
+            conf = {'*': conf}
 
         try:
-            conf, name, namespace = self.find_conf(name, fallback=None)
             cls = conf.pop('cls')
         except KeyError:
             if fallback:
-                return self.find_class(name=fallback)
+                cls, f_conf, f_ns = self.find_class(name=fallback)
+                f_conf.update(conf)
+                conf = f_conf
+                namespaces = list(set(namespaces).union(f_ns))
             else:
                 raise
 
         # sanitize conf
-        if isinstance(conf, dict):
-            for k in conf.keys():
-                if k.startswith(self.subconfig_namespace_delimiter):
-                    conf.pop(k)
+        for k in conf.keys():
+            if k.startswith(self.subconfig_namespace_delimiter):
+                conf.pop(k)
 
-        self._classes_cache[name] = cls, conf, namespace
-        return cls, conf, namespace
+        if isinstance(cls, basestring):
+            try:
+                cls = import_object(cls)
+            except ImportError:
+                logger.warning('Could not import "%s".', cls)
+
+        self._classes_cache[name] = cls, conf, tuple(namespaces)
+        return cls, copy.deepcopy(conf), tuple(namespaces)
 
     def find_and_construct_class(self, name, fallback=None, **kwargs):
-        cls, defaults, ns = self.find_class(name=name, fallback=fallback)
+        found_cls, defaults, ns = self.find_class(name=name, fallback=fallback)
+        args = ()
+        kw = kwargs
 
         if isinstance(defaults, dict):
             defaults.update(kwargs)
-            return cls(**defaults)
+            kw = defaults
+            args = kw.pop('*', args)
+            kw.update(kw.pop('**', {}))
 
         elif isinstance(defaults, (list, tuple)):
-            return cls(*defaults, **kwargs)
+            args = defaults
 
-        return cls(**kwargs)
+        if hasattr(found_cls, 'factory'):
+            found_cls = found_cls.factory
+
+        return found_cls(*args, **kw)
 
 
 class ConfigLoader(object):
@@ -187,11 +211,13 @@ class ConfigLoader(object):
                 return Config((k, walk(v, key=k)) for k, v in cfg.iteritems())
             if isinstance(cfg, (tuple, list)):
                 return map(walk, cfg)
-
             if isinstance(cfg, (str, unicode)):
                 ret = cfg.format(default=default_config)
                 if is_importable(key):
-                    ret = import_object(ret)
+                    try:
+                        ret = import_object(ret)
+                    except ImportError:
+                        pass
                 return ret
             return cfg
 

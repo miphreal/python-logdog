@@ -3,9 +3,8 @@ from itertools import chain
 import logging
 from tornado import gen
 
-from logdog.core.config import ConfigLoader, Config
+from logdog.core.config import Config
 from logdog.core.path import Path
-from logdog.core.pipe import Pipe
 
 
 logger = logging.getLogger(__name__)
@@ -37,11 +36,11 @@ class Application(object):
                 source = list(source)
 
             if isinstance(conf, basestring):
-                conf = Config(pipe=conf)
+                conf = Config(handler=conf)
             elif not conf:
-                conf = Config(pipe=self.config.default_pipe)
+                conf = Config(handler=self.config.default_pipe)
             elif isinstance(conf, dict):
-                conf.setdefault('pipe', self.config.default_pipe)
+                conf.setdefault('handler', self.config.default_pipe)
             else:
                 logger.warning('[APP] Weird config for "%s" (will be skipped).', ', '.join(source))
                 continue
@@ -82,23 +81,14 @@ class Application(object):
     @gen.coroutine
     def construct_pipes(self):
         for conf, files in self._register.itervalues():
+            conf['app'] = self
+            conf['parent'] = self
+
             for f in files:
-                self._pipes[f] = pipe = self.construct_pipe(**conf)
+                pipe = self.config.find_and_construct_class(name=conf['handler'],
+                                                            fallback='pipes.default', **conf)
                 pipe.set_input(Path(f, 0, None))
-
-    def construct_pipe(self, pipe, **kwargs):
-        pipe_cls = Pipe
-        defaults, name, ns = self.config.find_conf(pipe, fallback=self.config.default_pipe)
-        kwargs['app'] = self
-        kwargs['namespaces'] = (self.namespaces + (ns,)) if ns not in self.namespaces else self.namespaces
-
-        if isinstance(defaults, dict):
-            defaults.update(kwargs)
-            return pipe_cls(**defaults)
-        elif isinstance(defaults, (list, tuple)):
-            return pipe_cls(*defaults, **kwargs)
-        else:
-            return pipe_cls(**kwargs)
+                self._pipes[f] = pipe
 
     @gen.coroutine
     def _init(self):

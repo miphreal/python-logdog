@@ -23,7 +23,7 @@ class WebApp(Application):
 
 class WebUI(BaseViewer):
     defaults = BaseViewer.defaults(
-        singleton_behavior=True,
+        unique=True,
         port=8888,
         address='',
         autoreload=False,

@@ -1,5 +1,19 @@
 ---
-watcher:
+sources:
+  - /var/log/*.log: pipes.file-to-webui
+  - /var/log/*/*.log: pipes.file-to-webui
+  - /var/log/syslog: pipes.file-to-webui
 
-  targets:
-    - paths: /var/log/syslog
+
+pipes:
+  file-to-webui:
+    - watch pollers.file-watcher
+    - watch processors.stripper
+
+    - watch connectors.zmq-tunnel@sender:
+        connect: tcp://192.168.0.213:5589
+    - view connectors.zmq-tunnel@receiver:
+        bind: tcp://192.168.0.213:5589
+
+    - view viewers.webui:
+        port: 8989
