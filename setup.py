@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from distutils.core import setup
 import os
+from setuptools import find_packages, setup
 
 from logdog import (
     __version__ as version,
@@ -20,7 +20,7 @@ setup(
     author=author,
     author_email=author_email,
     url='https://github.com/miphreal/python-logdog/',
-    packages=['logdog'],
+    packages=find_packages(exclude=['tests']),
     scripts=['scripts/logdog'],
     install_requires=requires
 )
