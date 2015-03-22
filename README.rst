@@ -14,13 +14,13 @@ Why?
 Quick start
 ===========
 
-.. code-block::bash
+.. code-block:: bash
 
-    pip install logdog
+    $ pip install logdog
 
 Prepare config file:
 
-.. code-block::yaml
+.. code-block:: yaml
 
     # config.yml
     ---
@@ -31,11 +31,11 @@ Prepare config file:
 
 Start watching:
 
-.. code-block::bash
+.. code-block:: bash
 
     $ logdog --config=config.yml
 
-    
+
 
 TODO:
 

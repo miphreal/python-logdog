@@ -1,4 +1,10 @@
 include README.rst
-include setup.py
+include MANIFEST.in
 include requirements.txt
 include test-requirements.txt
+include setup.py
+recursive-include logdog *.py
+recursive-include docs *
+recursive-include examples *
+prune *.pyc
+prune *.sw*
