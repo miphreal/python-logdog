@@ -6,6 +6,7 @@ from tornado import gen
 
 from logdog.core.config import Config, handle_as_list
 from logdog.core.path import Path
+from logdog.core.register import Register
 
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Application(object):
 
-    def __init__(self, active_namespaces=None, config=None, io_loop=None,
+    def __init__(self, active_namespaces, config, io_loop=None,
                  force_handler=None, force_sources=None):
         from tornado.ioloop import IOLoop
         self.io_loop = io_loop or IOLoop.current()
@@ -24,7 +25,8 @@ class Application(object):
         self.active_namespaces = active_namespaces or [Config.namespace_default]
         logger.debug('[%s] Active namespaces: %s', self, ', '.join(self.active_namespaces))
         self._pipes = {}
-        self._register = {}
+        self._sources = {}
+        self.register = Register(index_file=config.options.sources.index_file)
 
     def __str__(self):
         return u'APP'
@@ -77,7 +79,7 @@ class Application(object):
                                ', '.join(intersection_files))
 
                 # remove from wider pattern
-                for source_, (_, files_) in self._register.iteritems():
+                for source_, (_, files_) in self.register.iteritems():
                     intersection_ = files_.intersection(files)
                     if intersection_ and len(files_) > len(files):
                         files_.difference_update(intersection_)
@@ -90,12 +92,12 @@ class Application(object):
 
             flat_files.update(files)
             flat_patterns.update(source)
-            self._register[source] = (conf, files)
+            self._sources[source] = (conf, files)
 
     @gen.coroutine
     def construct_pipes(self):
         default_watcher = self.config.options.sources.default_watcher
-        for conf, files in self._register.itervalues():
+        for conf, files in self._sources.itervalues():
             conf['app'] = self
             conf['parent'] = self
 
@@ -104,7 +106,12 @@ class Application(object):
                     name=conf.get('watcher', default_watcher), kwargs=conf)
                 pipe = self.config.find_and_construct_class(name=conf['handler'], kwargs=conf)
 
-                watcher.set_input(Path(f, 0, None))
+                try:
+                    path = self.register.get_path(f)
+                except KeyError:
+                    path = Path(f, 0, None)
+
+                watcher.set_input(path)
                 watcher.set_output(pipe)
                 pipe.link_methods()
                 watcher.link_methods()

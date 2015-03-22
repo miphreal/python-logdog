@@ -1,5 +1,4 @@
 import logging
-import time
 from tornado import gen
 from tornado.concurrent import is_future
 
@@ -59,5 +58,6 @@ class FileWatcher(BasePoller):
 
             else:
                 self.input.check_stat()
+                self.app.register.set_path(self.input)
                 logger.debug('[%s] Sleep on watching %ss.', self, self.poll_sleep_policy.cur_interval)
                 yield self.poll_sleep_policy.sleep()

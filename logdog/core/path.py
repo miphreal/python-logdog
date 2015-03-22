@@ -18,6 +18,23 @@ class Path(object):
     def __str__(self):
         return self.name
 
+    def __getstate__(self):
+        return {
+            'name': self.name,
+            'stat': self.stat,
+            '_prev_stat': self._prev_stat,
+            'offset': self.offset,
+            '_last_read_line': self._last_read_line,
+        }
+
+    def __setstate__(self, value):
+        self.name = value['name']
+        self.stat = value['stat']
+        self.offset = value['offset']
+        self._prev_stat = value['_prev_stat']
+        self._last_read_line = value['_last_read_line']
+        self._f = None
+
     def open(self):
         self._f = open(self.name, 'r')
         self._f.seek(self.offset)
@@ -48,7 +65,7 @@ class Path(object):
 
     @staticmethod
     def is_same_file(prev_stat, cur_stat):
-        return prev_stat.st_ino == cur_stat.st_ino and prev_stat.st_dev and cur_stat.st_dev
+        return prev_stat.st_ino == cur_stat.st_ino and prev_stat.st_dev == cur_stat.st_dev
 
     @staticmethod
     def is_file_truncated(prev_stat, cur_stat):

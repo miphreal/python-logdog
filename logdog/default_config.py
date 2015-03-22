@@ -3,8 +3,8 @@
 
 config = {
     'sources': {
-        '/var/log/*.log': {'handler': 'to-web'},
-        '/var/log/*/*.log': {'handler': 'to-web'},
+        '/var/log/*.log': {'handler': 'pipes.to-web'},
+        '/var/log/*/*.log': {'handler': 'pipes.to-web'},
         '/var/log/syslog': 'pipes.to-web',
     },
 
@@ -40,6 +40,7 @@ config = {
         'sources': {
             'default_handler': 'pipes.default',
             'default_watcher': 'pollers.file-watcher',
+            'index_file': '~/.config/logdog/sources-index.idx'
         }
     },
 
