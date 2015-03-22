@@ -44,3 +44,8 @@ TODO:
 - mongo collector
 - webui storages
 - webui filtering / searching
+
+
+Screenshots:
+
+- .. image:: http://i.imgur.com/B4JQ57T.png
