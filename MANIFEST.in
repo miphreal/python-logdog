@@ -9,3 +9,5 @@ recursive-include docs *
 recursive-include examples *
 prune *.pyc
 prune *.sw*
+prune logdog/viewers/webui/bower_components
+prune logdog/viewers/webui/node_modules

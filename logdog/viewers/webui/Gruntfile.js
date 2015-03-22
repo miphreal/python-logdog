@@ -60,8 +60,8 @@ module.exports = function (grunt) {
                         src: [
                             'css/ripples.css',
                             'css/ripples.css.map',
-                            'css/material-wfont.min.css', // !important
-                            'css/material-wfont.min.css.map', // !important
+                            'css/material-fullpalette.min.css', // !important
+                            //'css/material-fullpalette.min.css.map', // !important
                             'fonts/**',
                             '!fonts/LICENSE.txt',
                             'js/ripples.js',
@@ -105,7 +105,7 @@ module.exports = function (grunt) {
                 options: {
                     mangle: true,
                     except: ['jQuery', 'angular'],
-                    sourceMap: true,
+                    sourceMap: false,
                     sourceMapName: '<%= buildPath %>/js/app.js.map'
                 },
                 files: {
@@ -118,7 +118,7 @@ module.exports = function (grunt) {
             options: {
                 shorthandCompacting: false,
                 roundingPrecision: -1,
-                sourceMap: true
+                sourceMap: false
             },
             prod: {
                 files: {
