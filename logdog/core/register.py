@@ -5,11 +5,13 @@ import os
 
 class Register(object):
 
-    def __init__(self, index_file):
+    def __init__(self, index_file, reset=False):
         self._index_file = os.path.expandvars(os.path.expanduser(index_file))
         if not os.path.exists(os.path.dirname(self._index_file)):
             os.makedirs(os.path.dirname(self._index_file))
         self._reg = anydbm.open(self._index_file, 'c')
+        if reset:
+            self._reg.clear()
 
     def set(self, key, val):
         self._reg[key] = val

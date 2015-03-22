@@ -38,7 +38,7 @@ config = {
 
     'options': {
         'sources': {
-            'default_handler': 'pipes.default',
+            'default_handler': 'pipes.to-web',
             'default_watcher': 'pollers.file-watcher',
             'index_file': '~/.config/logdog/sources-index.idx'
         }

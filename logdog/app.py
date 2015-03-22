@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class Application(object):
 
     def __init__(self, active_namespaces, config, io_loop=None,
-                 force_handler=None, force_sources=None):
+                 force_handler=None, force_sources=None, reset_indices=False):
         from tornado.ioloop import IOLoop
         self.io_loop = io_loop or IOLoop.current()
         self.config = config
@@ -26,7 +26,7 @@ class Application(object):
         logger.debug('[%s] Active namespaces: %s', self, ', '.join(self.active_namespaces))
         self._pipes = {}
         self._sources = {}
-        self.register = Register(index_file=config.options.sources.index_file)
+        self.register = Register(index_file=config.options.sources.index_file, reset=reset_indices)
 
     def __str__(self):
         return u'APP'

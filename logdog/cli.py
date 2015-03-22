@@ -18,6 +18,7 @@ Options:
   -s --sources=<file:...>   Force specify files to be watched
   -H --handler=<handler>    Force set handler for all sources
                             (e.g. --handler=viewers.console)
+  --reset-indices           Remove current indices.
 """
 from docopt import docopt
 from logdog.app import Application
@@ -50,6 +51,7 @@ def main():
         config=config,
         force_handler=arguments.get('--handler'),
         force_sources=arguments.get('--sources'),
+        reset_indices=arguments.get('--reset-indices'),
     ).run()
 
 if __name__ == '__main__':

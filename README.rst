@@ -14,6 +14,8 @@ Why?
 Quick start
 ===========
 
+Running a simple one-host configuration.
+
 .. code-block:: bash
 
     $ pip install logdog
@@ -25,9 +27,9 @@ Prepare config file:
     # config.yml
     ---
     sources:
-      - /var/log/*.log: pipes.to-web
-      - /var/log/*/*.log: pipes.to-web
-      - /var/log/syslog: pipes.to-web
+      - /var/log/*.log
+      - /var/log/*/*.log
+      - /var/log/syslog
 
 Start watching:
 

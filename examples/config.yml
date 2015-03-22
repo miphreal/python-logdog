@@ -1,5 +1,5 @@
 ---
 sources:
-  - /var/log/*.log: pipes.to-web
-  - /var/log/*/*.log: pipes.to-web
-  - /var/log/syslog: pipes.to-web
+  - /var/log/*.log
+  - /var/log/*/*.log
+  - /var/log/syslog
