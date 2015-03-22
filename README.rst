@@ -10,6 +10,33 @@ Why?
 - aggregating and collecting logs
 - alerting
 
+
+Quick start
+===========
+
+.. code-block::bash
+
+    pip install logdog
+
+Prepare config file:
+
+.. code-block::yaml
+
+    # config.yml
+    ---
+    sources:
+      - /var/log/*.log: pipes.to-web
+      - /var/log/*/*.log: pipes.to-web
+      - /var/log/syslog: pipes.to-web
+
+Start watching:
+
+.. code-block::bash
+
+    $ logdog --config=config.yml
+
+    
+
 TODO:
 
 - cover with tests
