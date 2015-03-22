@@ -42,8 +42,9 @@ Start watching:
 TODO:
 
 - cover with tests
+- add documentation
 - zmq connectors
-- mongo collector
+- mongodb collector
 - webui storages
 - webui filtering / searching
 
