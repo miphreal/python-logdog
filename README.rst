@@ -85,7 +85,7 @@ Full ``sources`` format:
     ---
     sources:
       - (path | search pattern)
-      # or (any configs are optional)
+      # or (`handler`, `watcher`, `meta` are optional)
       - (path | search pattern):
           handler: handler-name # default pipes.to-web
           watcher: watcher-name # default pollers.file-watcher
