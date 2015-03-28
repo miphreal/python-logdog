@@ -49,13 +49,12 @@ You can run watching and viewing parts separately:
 Config
 ======
 
-YAML is used for configuring tool.
+YAML is used as a main format for writing configuration.
 
 Default config:
 
 .. code-block:: yaml
 
-    # config.yml
     ---
     sources:
       # <path-to-file>
@@ -67,7 +66,6 @@ Default config:
 
 .. code-block:: yaml
 
-    # config.yml
     ---
     sources:
       - /var/log/*.log: pipes.to-web
@@ -79,6 +77,42 @@ Default config:
       #  'handler': 'pipes.to-web'}
       # but must be {'/var/log/*/*.log': {'handler': 'pipes.to-web'}}
       - /var/log/syslog: {handler: pipes.to-web}
+
+Full ``sources`` format:
+
+.. code-block:: none
+
+    ---
+    sources:
+      - (path | search pattern)
+      # or (any configs are optional)
+      - (path | search pattern):
+          handler: handler-name # default pipes.to-web
+          watcher: watcher-name # default pollers.file-watcher
+          meta: a-dictionary-containing-any-meta-info # e.g. {tags: [tag1, tag2]}
+      # or
+      - (path | search pattern): handler-name
+      # or
+      - (path | search pattern): {handler: pipes.to-web}
+      # or
+      - (path | search pattern): {watcher: poller.custom-file-poller}
+      # or
+      - (path | search pattern): {meta: {tags: [log]}}
+
+
+Example 1:
+
+.. code-block:: yaml
+
+    ---
+    sources:
+      - /var/log/syslog: {handler: pipes.to-web, meta: {tags: [syslog]}
+      # or
+      - /var/log/syslog2:
+          handler: pipes.to-web
+          meta:
+            tags:
+              - syslog
 
 
 Screenshots

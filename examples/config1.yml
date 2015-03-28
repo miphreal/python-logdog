@@ -1,0 +1,10 @@
+---
+sources:
+  - /var/log/*.log:
+      handler: pipes.to-web
+      watcher: pollers.file-watcher
+      meta:
+        tags:
+          - common-logs
+  - /var/log/*/*.log
+  - /var/log/syslog
