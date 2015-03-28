@@ -20,6 +20,34 @@ Running a simple one-host configuration.
 
     $ pip install logdog
 
+Help output:
+
+.. code-block:: bash
+
+    $  logdog --help                                                                                                                                   develop 
+    logdog command line interface
+
+    Usage:
+      logdog [<pipe-namespace>...] [options]
+      logdog (-h | --help)
+      logdog --version
+
+    Arguments:
+      <pipe-namespace>          One or more pipe namespaces to be run
+
+    Options:
+      -h --help                 Show this screen
+      --version                 Show version
+      -v --verbose              Run in verbose mode
+      -l --log-level=<level>    Set internal logging level [default: INFO]
+      -f --log-format=<format>  Set internal logging format [default: quiet]
+      -c --config=<config>      Configuration file (yaml config)
+      -s --sources=<file:...>   Force specify files to be watched
+      -H --handler=<handler>    Force set handler for all sources
+                                (e.g. --handler=viewers.console)
+      --reset-indices           Remove current indices (will reset watching state)
+
+
 Prepare config file:
 
 .. code-block:: yaml
