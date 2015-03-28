@@ -23,10 +23,11 @@ class Application(object):
         self.force_sources = force_sources
         self.namespaces = (Config.namespace_default,)
         self.active_namespaces = active_namespaces or [Config.namespace_default]
-        logger.debug('[%s] Active namespaces: %s', self, ', '.join(self.active_namespaces))
         self._pipes = {}
         self._sources = {}
         self.register = Register(index_file=config.options.sources.index_file, reset=reset_indices)
+
+        logger.debug('[%s] Active namespaces: %s', self, ', '.join(self.active_namespaces))
 
     def __str__(self):
         return u'APP'
@@ -79,7 +80,7 @@ class Application(object):
                                ', '.join(intersection_files))
 
                 # remove from wider pattern
-                for source_, (_, files_) in self.register.iteritems():
+                for source_, (_, files_) in self._sources.iteritems():
                     intersection_ = files_.intersection(files)
                     if intersection_ and len(files_) > len(files):
                         files_.difference_update(intersection_)

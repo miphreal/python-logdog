@@ -12,13 +12,13 @@ Options:
   -h --help                 Show this screen
   --version                 Show version
   -v --verbose              Run in verbose mode
-  -l --log-level=<level>    Set logging level [default: INFO]
-  -f --log-format=<format>  Set logging format [default: quiet]
+  -l --log-level=<level>    Set internal logging level [default: INFO]
+  -f --log-format=<format>  Set internal logging format [default: quiet]
   -c --config=<config>      Configuration file (yaml config)
   -s --sources=<file:...>   Force specify files to be watched
   -H --handler=<handler>    Force set handler for all sources
                             (e.g. --handler=viewers.console)
-  --reset-indices           Remove current indices.
+  --reset-indices           Remove current indices (will reset watching state)
 """
 from docopt import docopt
 from logdog.app import Application
@@ -53,6 +53,7 @@ def main():
         force_sources=arguments.get('--sources'),
         reset_indices=arguments.get('--reset-indices'),
     ).run()
+
 
 if __name__ == '__main__':
     main()

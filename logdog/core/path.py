@@ -21,17 +21,18 @@ class Path(object):
     def __getstate__(self):
         return {
             'name': self.name,
-            'stat': self.stat,
-            '_prev_stat': self._prev_stat,
+            'stat': tuple(self.stat),
+            '_prev_stat': tuple(self._prev_stat),
             'offset': self.offset,
             '_last_read_line': self._last_read_line,
+            '_f': None,
         }
 
     def __setstate__(self, value):
         self.name = value['name']
-        self.stat = value['stat']
+        self.stat = os.stat_result(value['stat']) if value['stat'] else None
         self.offset = value['offset']
-        self._prev_stat = value['_prev_stat']
+        self._prev_stat = os.stat_result(value['_prev_stat']) if value['_prev_stat'] else None
         self._last_read_line = value['_last_read_line']
         self._f = None
 

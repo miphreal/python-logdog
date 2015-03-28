@@ -1,4 +1,7 @@
 ---
+# Simple configuration file.
+# There's a list of files to be watched.
+# Default handling pipe will be used for all found files/logs.
 sources:
   - /var/log/*.log
   - /var/log/*/*.log

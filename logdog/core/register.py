@@ -1,6 +1,7 @@
 import anydbm
-import pickle
+import json
 import os
+from logdog.core.path import Path
 
 
 class Register(object):
@@ -14,7 +15,7 @@ class Register(object):
             self._reg.clear()
 
     def set(self, key, val):
-        self._reg[key] = val
+        self._reg[str(key)] = str(val)
 
     def get(self, key):
         return self._reg[key]
@@ -23,7 +24,9 @@ class Register(object):
         return self._reg[item]
 
     def get_path(self, name):
-        return pickle.loads(self.get(name))
+        path = Path('', 0, None)
+        path.__setstate__(json.loads(self.get(name)))
+        return path
 
     def set_path(self, path_obj):
-        self.set(path_obj.name, pickle.dumps(path_obj))
+        self.set(path_obj.name, json.dumps(path_obj.__getstate__()))

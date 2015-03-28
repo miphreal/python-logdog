@@ -1,0 +1,6 @@
+---
+sources:
+  - /var/log/*.log: pipes.to-web
+  - /var/log/*/*.log:
+      handler: pipes.to-web
+  - /var/log/syslog: {handler: pipes.to-web}

@@ -142,6 +142,9 @@ class BaseRole(object):
         self.output = obj
 
     def _prepare_message_meta(self, **extra):
+        meta = self.config.get('meta')
+        if meta:
+            extra.update(meta)
         extra.setdefault('host', None)
         return extra
 
