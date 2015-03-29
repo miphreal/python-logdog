@@ -13,6 +13,9 @@ from logdog.default_config import config as logdog_default_config
 logger = logging.getLogger(__name__)
 
 
+class ConfigError(Exception):
+    pass
+
 _unset = object()
 
 
@@ -170,7 +173,9 @@ class Config(ObjectDict):
 
         args = handle_as_list(args)
 
-        return found_cls(*args, **kw)
+        if callable(found_cls):
+            return found_cls(*args, **kw)
+        raise ConfigError('{} is not a class. Cannot be imported or called.'.format(found_cls))
 
 
 class ConfigLoader(object):
