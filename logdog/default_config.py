@@ -1,7 +1,27 @@
-# options must be valid python identifiers, e.g. "default_pipe"
+# Default config.
+# options/properties must be valid python identifiers, e.g. "default_pipe"
 # names can be any string, e.g. "file->webui" (excluding ' ', '@')
 
 config = {
+    # Sources format
+    # YAML
+    # sources:
+    #   - (path | search pattern)
+    #   # or
+    #   # `handler`, `watcher`, `meta` are optional
+    #   - (path | search pattern):
+    #     handler: handler-name # default pipes.to-web
+    #     watcher: watcher-name # default pollers.file-watcher
+    #     meta: a-dictionary-containing-any-meta-info # e.g. {tags: [tag1, tag2]}
+    #   # or
+    #   - (path | search pattern): handler-name
+    #   # or
+    #   - (path | search pattern): {handler: pipes.to-web}
+    #   # or
+    #   - (path | search pattern): {watcher: poller.custom-file-poller}
+    #   # or
+    #   - (path | search pattern): {meta: {tags: [log]}}
+
     'sources': {
         '/var/log/*.log': {'handler': 'pipes.to-web'},
         '/var/log/*/*.log': {'handler': 'pipes.to-web'},

@@ -59,6 +59,8 @@ Prepare config file:
       - /var/log/*/*.log
       - /var/log/syslog
 
+Please, see `default_config.py <logdog/default_config.py>`_
+
 Start watching:
 
 .. code-block:: bash
