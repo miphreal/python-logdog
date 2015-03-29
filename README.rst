@@ -155,6 +155,7 @@ TODO
 ====
 
 - cover with tests
+- detecting new files
 - colorize logs
 - add documentation
 - zmq connectors
