@@ -1,0 +1,14 @@
+---
+sources:
+  - /var/log/*.log: pipes.custom
+  - /var/log/*/*.log:
+      handler: pipes.custom
+  - /var/log/syslog: {handler: pipes.custom}
+
+pipes:
+  custom:
+    - watch processors.stripper
+    - watch parsers.regex:
+        regex: (?P<msg>.*)
+    - view formatters.formatter
+    - view viewers.console

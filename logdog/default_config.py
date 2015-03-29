@@ -28,8 +28,16 @@ config = {
         '/var/log/syslog': 'pipes.to-web',
     },
 
+    # Pipes format
+    # YAML
+    # pipes:
+    #   pipe-name:
+    #     - [namespace,...] pipe-object  # processors.stripper
+    #     - ...                          # ns processors.stripper
+    #     - ...config                    # ns1,ns2 processors.stripper
+
     'pipes': {
-        'default': 'logdog.pipes.Pipe',
+        'default': 'logdog.roles.pipes.Pipe',
 
         'to-web': [
             'watch processors.stripper',
@@ -39,7 +47,7 @@ config = {
         ],
 
         'experiment-x001': {
-            'cls': 'logdog.pipes.Pipe',
+            'cls': 'logdog.roles.pipes.Pipe',
             '*': [
                 'watch processors.stripper',
                 {'forwarders.broadcast': [
@@ -68,7 +76,7 @@ config = {
     # pollers
     'pollers': {
         'file-watcher': {
-            'cls': 'logdog.pollers.FileWatcher',
+            'cls': 'logdog.roles.pollers.FileWatcher',
             'namespaces': ['watch'],
         },
     },
@@ -76,21 +84,27 @@ config = {
     # collectors
     'collectors': {},
 
-    # processors
-    'processors': {
-        'stripper': {'cls': 'logdog.processors.Stripper'},
+    # processors / parsers / formatters
+    'processors': {  # transform message
+        'stripper': {'cls': 'logdog.roles.processors.Stripper'},
+    },
+    'parsers': {  # extract meta
+        'regex': {'cls': 'logdog.roles.parsers.Regex', 'regex': r''},
+    },
+    'formatters': {  # add to meta formatted representation of message
+        'formatter': {'cls': 'logdog.roles.formatters.Formatter'},
     },
 
     # forwarders
     'forwarders': {
-        'broadcast': 'logdog.forwarders.Broadcast',
-        'round-robin': 'logdog.forwarders.RoundRobin',
+        'broadcast': 'logdog.roles.forwarders.Broadcast',
+        'round-robin': 'logdog.roles.forwarders.RoundRobin',
     },
 
     # connectors
     'connectors': {
         'zmq-tunnel': {
-            'cls': 'logdog.connectors.ZMQTunnel',
+            'cls': 'logdog.roles.connectors.ZMQTunnel',
             '@sender': {'socket': 'PUSH', 'connect': ['tcp://localhost:45457']},
             '@receiver': {'socket': 'PULL', 'bind': ['tcp://*:45457']},
         }
@@ -98,17 +112,17 @@ config = {
 
     # viewers
     'viewers': {
-        'default': 'logdog.viewers.Null',
+        'default': 'logdog.roles.viewers.Null',
 
         'webui': {
-            'cls': 'logdog.viewers.WebUI',
+            'cls': 'logdog.roles.viewers.WebUI',
             'port': 8888,
         },
         'console': {
-            'cls': 'logdog.viewers.Console',
+            'cls': 'logdog.roles.viewers.Console',
             'redirect_to': 'stdout',
         },
-        'null': 'logdog.viewers.Null',
+        'null': 'logdog.roles.viewers.Null',
     },
 
     # utils

@@ -1,0 +1,20 @@
+---
+sources:
+  - /var/log/*.log: pipes.custom
+  - /var/log/*/*.log:
+      handler: pipes.custom
+  - /var/log/syslog: {handler: pipes.custom}
+
+pipes:
+  custom:
+    - watch processors.stripper
+    - watch connectors.zmq-tunnel@sender:
+        connect:
+          - tcp://collector.domain.org:5555
+          - tcp://localhost:5555
+        socket: PUSH
+    - view connectors.zmq-tunnel@receiver:
+        bind: tcp://*:5555
+        socket: PULL
+    - view formatters.formatter
+    - view viewers.console

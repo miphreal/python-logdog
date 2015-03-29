@@ -1,4 +1,5 @@
 import json
+from tornado.escape import to_unicode
 import umsgpack
 
 
@@ -11,13 +12,21 @@ class Msg(object):
     )
 
     def __init__(self, message, source, meta=None, version=1):
-        self.message = message
-        self.source = source
+        self.message = to_unicode(message)
+        self.source = to_unicode(source)
         self.meta = meta
         self.version = version
 
     def __str__(self):
         return self.message
+
+    def update_message(self, message):
+        self.message = to_unicode(message)
+
+    def update_meta(self, d):
+        if self.meta is None:
+            self.meta = {}
+        self.meta.update(d)
 
     def serialize(self):
         return {
