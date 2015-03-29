@@ -24,7 +24,7 @@ Help output:
 
 .. code-block:: bash
 
-    $  logdog --help                                                                                                                                   develop 
+    $  logdog --help 
     logdog command line interface
 
     Usage:
