@@ -159,17 +159,17 @@ Predefined configs:
 
 ``pipes``:
 
-    - `pipes.to-web` - defines a simple flow (strip -> zmq localhost:7789 -> zmq *:7789 -> webui)
+- `pipes.to-web` - defines a simple flow (strip -> zmq localhost:7789 -> zmq *:7789 -> webui)
 
 ``viewers``:
 
-    - `viewers.null` - does nothing with incoming data
-    - `viewers.console` - print incoming log messages into stdout
-    - `viewers.webui` - forward all incoming messages to all connected clients using websockets
+- `viewers.null` - does nothing with incoming data
+- `viewers.console` - print incoming log messages into stdout
+- `viewers.webui` - forward all incoming messages to all connected clients using websockets
 
 ``connectors``:
 
-    - `connectors.zmq-tunnel` - allows to create any zmq sockets to push/pull data
+- `connectors.zmq-tunnel` - allows to create any zmq sockets to push/pull data
 
 For more details see `default_config.py`_.
 

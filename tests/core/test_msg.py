@@ -1,5 +1,5 @@
 class TestMsg(object):
-    
+
     def test_init(self):
         pass
 
