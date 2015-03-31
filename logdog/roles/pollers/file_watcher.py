@@ -43,24 +43,21 @@ class FileWatcher(BasePoller):
             return
 
         while self.started:
-            try:
-                data = self.input.read_line()
+            data = self.input.read_line()
 
-                if data:
-                    data = self._prepare_message(data)
-                    ret = self._forward(data)
-                    if is_future(ret):
-                        yield ret
+            if data:
+                data = self._prepare_message(data)
+                ret = self._forward(data)
+                if is_future(ret):
+                    yield ret
 
-                    self.poll_sleep_policy.reset()
+                self.poll_sleep_policy.reset()
 
-                    if greedy_file_reading_enabled and self.greedy_policy.need_to_wait():
-                        yield self.greedy_policy.wait()
+                if greedy_file_reading_enabled and self.greedy_policy.need_to_wait():
+                    yield self.greedy_policy.wait()
 
-                else:
-                    self.input.check_stat()
-                    self.app.register.set_path(self.input)
-                    logger.debug('[%s] Sleep on watching %ss.', self, self.poll_sleep_policy.cur_interval)
-                    yield self.poll_sleep_policy.sleep()
-            except Exception as e:
-                raise
+            else:
+                self.input.check_stat()
+                self.app.register.set_path(self.input)
+                logger.debug('[%s] Sleep on watching %ss.', self, self.poll_sleep_policy.cur_interval)
+                yield self.poll_sleep_policy.sleep()

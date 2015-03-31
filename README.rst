@@ -6,8 +6,8 @@ distributed log tail viewer
 Why?
 
 - tail log files and forward them to web in runtime
-- dynamically parse and process logs
-- aggregating and collecting logs
+- dynamically parse and (pre)process logs
+- aggregate and collect logs
 - alerting
 
 
@@ -59,7 +59,9 @@ Prepare config file:
       - /var/log/*/*.log
       - /var/log/syslog
 
-Please, see `default_config.py <logdog/default_config.py>`_
+Please, see `default_config.py`_
+
+.. _default_config.py: logdog/default_config.py
 
 Start watching:
 
@@ -108,6 +110,11 @@ Default config:
       # but must be {'/var/log/*/*.log': {'handler': 'pipes.to-web'}}
       - /var/log/syslog: {handler: pipes.to-web}
 
+
+Pipe is a sequence of steps to process / parse / forward / collect log messages.
+``pipes.to-web`` is a predefined pipe (see `default_config.py`_).
+
+
 Full ``sources`` format:
 
 .. code-block:: none
@@ -144,6 +151,27 @@ Example 1:
             tags:
               - syslog
 
+
+Builtins
+========
+
+Predefined configs:
+
+``pipes``:
+
+    - `pipes.to-web` - defines a simple flow (strip -> zmq localhost:7789 -> zmq *:7789 -> webui)
+
+``viewers``:
+
+    - `viewers.null` - does nothing with incoming data
+    - `viewers.console` - print incoming log messages into stdout
+    - `viewers.webui` - forward all incoming messages to all connected clients using websockets
+
+``connectors``:
+
+    - `connectors.zmq-tunnel` - allows to create any zmq sockets to push/pull data
+
+For more details see `default_config.py`_.
 
 Screenshots
 ===========
