@@ -190,3 +190,4 @@ TODO
 - mongodb collector
 - webui storages
 - webui filtering / searching
+- implement `--validate-config`
