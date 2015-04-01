@@ -41,7 +41,7 @@ class Msg(object):
         return cls(message=data.get('msg'),
                    source=data.get('src'),
                    meta=data.get('meta'),
-                   version=data.get('_v'))
+                   version=data.get('_v', 1))
 
     def serialize_json(self):
         return json.dumps(self.serialize())
