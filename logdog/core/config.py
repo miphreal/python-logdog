@@ -1,5 +1,8 @@
+from __future__ import unicode_literals
 import copy
 import logging
+import os
+
 from tornado.util import ObjectDict, import_object
 from yaml import load
 try:
@@ -184,6 +187,8 @@ class ConfigLoader(object):
         self._path = path
 
     def _load_user_config(self):
+        if not os.path.exists(self._path):
+            raise ConfigError('[{}] Config file does not exist.'.format(self._path))
         with open(self._path, 'r') as f:
             return load(f, Loader=Loader)
 
@@ -208,6 +213,9 @@ class ConfigLoader(object):
         user_config = self._load_user_config() if not default_only else Config()
         default_config = copy.deepcopy(logdog_default_config)
 
+        if not isinstance(user_config, dict):
+            raise ConfigError('[{}] Invalid config file: must have \"key: value\" format.'.format(self._path))
+
         def walk(cfg, key=None):
             if isinstance(cfg, dict):
                 return Config((k, walk(v, key=k)) for k, v in cfg.iteritems())
@@ -219,7 +227,7 @@ class ConfigLoader(object):
                     try:
                         ret = import_object(ret)
                     except ImportError:
-                        pass
+                        logger.debug('[%s] Faced non-importable path: \"%s: %s\".', self._path, key, ret)
                 return ret
             return cfg
 
