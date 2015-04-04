@@ -1,5 +1,7 @@
 # coding=utf-8
+from __future__ import unicode_literals
 from hamcrest import *
+
 from logdog.core.msg import Msg
 
 
@@ -7,12 +9,11 @@ class TestMsg(object):
 
     def test_init(self):
         m = Msg(message='log entry', source='/tmp/x')
-        assert_that(m.message, equal_to(u'log entry'))
-        assert_that(m.message, instance_of(unicode))
+        assert_that(m.message, equal_to('log entry'))
 
     def test_init_unicode(self):
-        m = Msg(message=u'сообщение лога', source='/tmp/x')
-        assert_that(m.message, equal_to(u'сообщение лога'))
+        m = Msg(message='сообщение лога', source='/tmp/x')
+        assert_that(m.message, equal_to('сообщение лога'))
 
     def test_update_message(self):
         m = Msg(message='log entry', source='/tmp/x')
@@ -53,7 +54,7 @@ class TestMsg(object):
     def test_serialize_json(self):
         m = Msg(message='log entry', source='/tmp/x', meta={'tags': ['syslog']})
         assert_that(m.serialize_json(), contains_string('log entry'))
-        m = Msg(message=u'сообщение', source='/tmp/x', meta={'tags': ['syslog']})
+        m = Msg(message='сообщение', source='/tmp/x', meta={'tags': ['syslog']})
         m.serialize_json()
 
     def test_deserialize_json(self):
@@ -63,15 +64,15 @@ class TestMsg(object):
                     has_properties(
                         message=equal_to('log entry'), source=equal_to('/tmp/x'),
                         meta=None, version=1))
-        assert_that(Msg.deserialize_json(u'{"msg":"сообщение","src":"/tmp/файл","meta":null,"_v":1}'),
+        assert_that(Msg.deserialize_json('{"msg":"сообщение","src":"/tmp/файл","meta":null,"_v":1}'),
                     has_properties(
-                        message=equal_to(u'сообщение'), source=equal_to(u'/tmp/файл'),
+                        message=equal_to('сообщение'), source=equal_to('/tmp/файл'),
                         meta=None, version=1))
 
     def test_serialize_jsonb(self):
         m = Msg(message='log entry', source='/tmp/x', meta={'tags': ['syslog']})
         m.serialize_jsonb()
-        m = Msg(message=u'сообщение', source=u'/tmp/файл', meta={'tags': ['syslog']})
+        m = Msg(message='сообщение', source='/tmp/файл', meta={'tags': ['syslog']})
         m.serialize_jsonb()
 
     def test_deserialize_jsonb(self):

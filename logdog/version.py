@@ -1,3 +1,6 @@
+from __future__ import unicode_literals
+
+
 MAJOR_VERSION = 0
 MINOR_VERSION = 2
 PATCH_VERSION = 9

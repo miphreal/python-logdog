@@ -12,3 +12,7 @@ pipes:
         regex: (?P<msg>.*)
     - view formatters.formatter
     - view viewers.console
+
+
+  custom2:
+    cls: tmp.paths

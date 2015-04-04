@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 import logging
 import os
 from tornado import gen
@@ -37,12 +39,12 @@ class WebUI(BaseViewer):
         self._web_app = WebApp(**self.config)
 
     def __str__(self):
-        return u'WEBUI:http://{}:{}'.format(self.config.address or '0.0.0.0', self.config.port)
+        return 'WEBUI:http://{}:{}'.format(self.config.address or '0.0.0.0', self.config.port)
 
     @classmethod
     def __singleton_key__(cls, passed_args, passed_kwargs):
         key = super(WebUI, cls).__singleton_key__(passed_args, passed_kwargs)
-        return u'{key}:address={address}:port={port}'.format(
+        return '{key}:address={address}:port={port}'.format(
             key=key,
             address=passed_kwargs.get('address', cls.defaults.address),
             port=passed_kwargs.get('port', cls.defaults.port)

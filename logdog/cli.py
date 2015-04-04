@@ -20,6 +20,8 @@ Options:
                             (e.g. --handler=viewers.console)
   --reset-indices           Remove current indices (will reset watching state)
 """
+from __future__ import absolute_import, unicode_literals
+
 from docopt import docopt
 from logdog.app import Application
 from logdog.core.config import ConfigLoader

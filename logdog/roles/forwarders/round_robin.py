@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 from tornado import gen
 
 from .base import BaseForwarder
@@ -10,7 +12,7 @@ class RoundRobin(BaseForwarder):
         self._curr_target = 0
 
     def __str__(self):
-        return u'ROUND-ROBIN:{}'.format(self.input)
+        return 'ROUND-ROBIN:{}'.format(self.input)
 
     @gen.coroutine
     def _input_forwarder(self, data):

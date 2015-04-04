@@ -1,9 +1,11 @@
+from __future__ import absolute_import, unicode_literals
+
 from .base import BaseFormatter
 
 
 class Formatter(BaseFormatter):
     defaults = BaseFormatter.defaults.copy_and_update(
-        format=u'{msg.source!s}: {msg.message!s}',
+        format='{msg.source!s}: {msg.message!s}',
         format_meta_name=None,  # None means 'replace msg.message'
     )
 
@@ -13,7 +15,7 @@ class Formatter(BaseFormatter):
         self.format_meta_name = self.config.format_meta_name
 
     def __str__(self):
-        return u'FORMATTER'
+        return 'FORMATTER'
 
     def on_recv(self, data):
         msg = self.format.format(msg=data)

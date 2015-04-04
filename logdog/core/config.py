@@ -1,9 +1,10 @@
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
+
 import copy
 import logging
 import os
 
-from tornado.util import ObjectDict, import_object
+from tornado.util import ObjectDict
 from yaml import load
 try:
     from yaml import CLoader as Loader
@@ -11,6 +12,7 @@ except ImportError:
     from yaml import Loader
 
 from logdog.default_config import config as logdog_default_config
+from logdog.compat import text_type, import_object
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +26,7 @@ _unset = object()
 
 def handle_as_list(conf):
     if isinstance(conf, dict):
-        return conf.iteritems()
+        return conf.items()
     if isinstance(conf, (list, tuple)):
         l = []
         for item in conf:
@@ -218,10 +220,10 @@ class ConfigLoader(object):
 
         def walk(cfg, key=None):
             if isinstance(cfg, dict):
-                return Config((k, walk(v, key=k)) for k, v in cfg.iteritems())
+                return Config((k, walk(v, key=k)) for k, v in cfg.items())
             if isinstance(cfg, (tuple, list)):
                 return map(walk, cfg)
-            if isinstance(cfg, (str, unicode)):
+            if isinstance(cfg, (str, text_type)):
                 ret = cfg.format(default=default_config)
                 if is_importable(key):
                     try:

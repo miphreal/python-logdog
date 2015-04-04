@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 import logging
 from tornado import gen
 from tornado.concurrent import Future
@@ -33,7 +35,7 @@ class BaseRole(object):
 
     @classmethod
     def __singleton_key__(cls, passed_args, passed_kwargs):
-        return u'{}.{}:{}'.format(cls.__module__,
+        return '{}.{}:{}'.format(cls.__module__,
                                   cls.__name__, passed_kwargs.get('config_name', 'unknown'))
 
     @property
@@ -64,7 +66,7 @@ class BaseRole(object):
         self._forward = getattr(self, '_forward', None)
 
     def __str__(self):
-        return u'{}:{}'.format(self.__class__.__name__, self.parent)
+        return '{}:{}'.format(self.__class__.__name__, self.parent)
 
     @property
     def active_items(self):

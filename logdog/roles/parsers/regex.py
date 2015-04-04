@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 import re
 from .base import BaseParser
 
@@ -12,7 +14,7 @@ class Regex(BaseParser):
         self.re = re.compile(self.config.regex)
 
     def __str__(self):
-        return u'REGEX-EXTRACTOR'
+        return 'REGEX-EXTRACTOR'
 
     def on_recv(self, data):
         match = self.re.search(data.message)

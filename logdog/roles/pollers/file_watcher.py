@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 import logging
 from tornado import gen
 from tornado.concurrent import is_future
@@ -22,7 +24,7 @@ class FileWatcher(BasePoller):
         self.greedy_policy = self.app.config.find_and_construct_class(name=self.config.greedy_policy)
 
     def __str__(self):
-        return u'WATCHER:{!s}'.format(self.input)
+        return 'WATCHER:{!s}'.format(self.input)
 
     def _prepare_message(self, data):
         msg = super(FileWatcher, self)._prepare_message(data)

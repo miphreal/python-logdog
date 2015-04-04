@@ -1,6 +1,8 @@
 # Default config.
 # options/properties must be valid python identifiers, e.g. "default_pipe"
 # names can be any string, e.g. "file->webui" (excluding ' ', '@')
+from __future__ import absolute_import, unicode_literals
+
 
 config = {
     # Sources format

@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 import glob
 from itertools import chain
 import logging
@@ -30,7 +32,7 @@ class Application(object):
         logger.debug('[%s] Active namespaces: %s', self, ', '.join(self.active_namespaces))
 
     def __str__(self):
-        return u'APP'
+        return 'APP'
 
     @gen.coroutine
     def load_sources(self):
@@ -80,7 +82,7 @@ class Application(object):
                                ', '.join(intersection_files))
 
                 # remove from wider pattern
-                for source_, (_, files_) in self._sources.iteritems():
+                for source_, (_, files_) in self._sources.items():
                     intersection_ = files_.intersection(files)
                     if intersection_ and len(files_) > len(files):
                         files_.difference_update(intersection_)

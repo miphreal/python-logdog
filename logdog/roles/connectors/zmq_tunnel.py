@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+
 from tornado import gen
 from tornado.concurrent import is_future
 import zmq
@@ -31,7 +33,7 @@ class ZMQTunnel(BaseConnector):
         super(ZMQTunnel, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return u'ZMQ-TUNNEL:{}:{}'.format(self.config.socket,
+        return 'ZMQ-TUNNEL:{}:{}'.format(self.config.socket,
                                           ','.join(self.config.bind) or
                                           ','.join(self.config.connect) or 'None')
 
@@ -44,7 +46,7 @@ class ZMQTunnel(BaseConnector):
         bind = passed_kwargs.get('bind', cls.defaults.bind) or ()
         if not isinstance(bind, (list, tuple)):
             bind = [bind]
-        return u'{key}::socket-type={socket_type}::bind={bind}::connect={connect}'.format(
+        return '{key}::socket-type={socket_type}::bind={bind}::connect={connect}'.format(
             key=key,
             socket_type=passed_kwargs.get('socket', cls.defaults.socket),
             connect=','.join(sorted(connect)) or 'None',
