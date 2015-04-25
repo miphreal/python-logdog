@@ -17,17 +17,21 @@
     }
 
     var app = angular.module('logdog.app', [
-        'ui.router',
-        'ui.bootstrap'
+        'ngMaterial',
+        'ui.router'
     ],
     ['$interpolateProvider', function ($interpolateProvider) {
         $interpolateProvider.startSymbol('[[');
         $interpolateProvider.endSymbol(']]');
     }]);
 
-    app.run(function () {
-        $(function() {$.material.init();});
-    });
+    app.config(['$mdThemingProvider', function ($mdThemingProvider) {
+        $mdThemingProvider.theme('default')
+            .primaryPalette('indigo')
+            .accentPalette('deep-purple')
+            .warnPalette('red')
+            .backgroundPalette('grey');
+    }]);
 
     app.directive('logViewer', ['$timeout', function($timeout){
         return {

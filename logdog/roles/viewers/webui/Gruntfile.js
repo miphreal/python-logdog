@@ -3,22 +3,18 @@ module.exports = function (grunt) {
 
     var appJs = [
         '<%= buildPath %>/js/jquery.js',
-        //'<%= buildPath %>/js/bootstrap.js',
-        '<%= buildPath %>/js/ripples.js',
-        '<%= buildPath %>/js/material.js',
-
         '<%= buildPath %>/js/angular.js',
-        '<%= buildPath %>/js/ui-bootstrap.js',
-        '<%= buildPath %>/js/ui-bootstrap-tpls.js',
+        '<%= buildPath %>/js/angular-animate.js',
+        '<%= buildPath %>/js/angular-aria.js',
         '<%= buildPath %>/js/angular-ui-router.js',
+        '<%= buildPath %>/js/angular-material.js',
 
         '<%= srcPath %>/js/app.js',
         '<%= srcPath %>/js/**/*.js'
     ];
 
     var appCss = [
-        '<%= buildPath %>/css/bootstrap.css',
-        '<%= buildPath %>/css/ripples.css',
+        '<%= buildPath %>/css/angular-material.css',
 
         '<%= srcPath %>/css/app.css'
     ];
@@ -34,20 +30,14 @@ module.exports = function (grunt) {
             },
             build: ['<%= buildPath %>'],
             postMin: [
-                '<%= buildPath %>/js/jquery.js',
-                '<%= buildPath %>/js/bootstrap.js',
-                '<%= buildPath %>/js/ripples.js',
-                '<%= buildPath %>/js/material.js',
+                 '<%= buildPath %>/js/jquery.js',
+                 '<%= buildPath %>/js/angular.js',
+                 '<%= buildPath %>/js/angular-animate.js',
+                 '<%= buildPath %>/js/angular-aria.js',
+                 '<%= buildPath %>/js/angular-ui-router.js',
+                 '<%= buildPath %>/js/angular-material.js',
 
-                '<%= buildPath %>/js/angular.js',
-                '<%= buildPath %>/js/ui-bootstrap.js',
-                '<%= buildPath %>/js/ui-bootstrap-tpls.js',
-                '<%= buildPath %>/js/angular-ui-router.js',
-
-                '<%= buildPath %>/css/bootstrap.css',
-                '<%= buildPath %>/css/bootstrap.css.map',
-                '<%= buildPath %>/css/ripples.css',
-                '<%= buildPath %>/css/ripples.css.map'
+                 '<%= buildPath %>/css/angular-material.css'
             ]
         },
 
@@ -56,37 +46,31 @@ module.exports = function (grunt) {
                 files: [
                     {expand: true, cwd: '<%= srcPath %>', src: ['fonts/**'], dest: '<%= buildPath %>/'},
                     {expand: true,
-                        cwd: 'bower_components/bootstrap-material-design/dist',
-                        src: [
-                            'css/ripples.css',
-                            'css/ripples.css.map',
-                            'css/material-fullpalette.min.css', // !important
-                            //'css/material-fullpalette.min.css.map', // !important
-                            'fonts/**',
-                            '!fonts/LICENSE.txt',
-                            'js/ripples.js',
-                            'js/material.js'
-                        ],
-                        dest: '<%= buildPath %>/'},
-                    {expand: true,
-                        cwd: 'bower_components/bootstrap/dist',
-                        src: [
-                            'css/bootstrap.css',
-                            'css/bootstrap.css.map',
-                            'js/bootstrap.js'
-                            ], dest: '<%= buildPath %>/'},
+                        cwd: 'bower_components/jquery/dist',
+                        src: ['jquery.js'], dest: '<%= buildPath %>/js'},
                     {expand: true,
                         cwd: 'bower_components/angular',
                         src: ['angular.js'], dest: '<%= buildPath %>/js'},
                     {expand: true,
-                        cwd: 'bower_components/jquery/dist',
-                        src: ['jquery.js'], dest: '<%= buildPath %>/js'},
+                        cwd: 'bower_components/angular-animate',
+                        src: ['angular-animate.js'], dest: '<%= buildPath %>/js'},
                     {expand: true,
-                        cwd: 'bower_components/angular-bootstrap',
-                        src: ['ui-bootstrap.js', 'ui-bootstrap-tpls.js'], dest: '<%= buildPath %>/js'},
+                        cwd: 'bower_components/angular-aria',
+                        src: ['angular-aria.js'], dest: '<%= buildPath %>/js'},
                     {expand: true,
                         cwd: 'bower_components/angular-ui-router/release',
-                        src: ['angular-ui-router.js'], dest: '<%= buildPath %>/js'}
+                        src: ['angular-ui-router.js'], dest: '<%= buildPath %>/js'},
+                    {expand: true,
+                        cwd: 'bower_components/angular-material',
+                        src: ['angular-material.js'], dest: '<%= buildPath %>/js'},
+
+                    {expand: true,
+                        cwd: 'bower_components/angular-material',
+                        src: ['angular-material.css'], dest: '<%= buildPath %>/css'},
+
+                    {expand: true,
+                        cwd: 'bower_components/material-design-icons',
+                        src: ['navigation/svg/production/ic_menu_18px.svg'], dest: '<%= buildPath %>/img/icons'}
                 ]
             }
         },
