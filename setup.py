@@ -22,5 +22,9 @@ setup(
     url='https://github.com/miphreal/python-logdog/',
     packages=find_packages(exclude=['tests']),
     scripts=['scripts/logdog'],
-    install_requires=requires
+    install_requires=requires,
+    package_data={'logdog': ['roles/viewers/webui/assets/html/index.html',
+                             'roles/viewers/webui/static/img/icons/navigation/svg/production/ic_menu_18px.svg',
+                             'roles/viewers/webui/static/css/app.css',
+                             'roles/viewers/webui/static/js/app.js']}
 )
