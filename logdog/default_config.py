@@ -119,6 +119,7 @@ config = {
         'webui': {
             'cls': 'logdog.roles.viewers.WebUI',
             'port': 8888,
+            'debug': False,
         },
         'console': {
             'cls': 'logdog.roles.viewers.Console',
