@@ -2,8 +2,12 @@ from __future__ import absolute_import, unicode_literals
 
 import anydbm
 import json
+import logging
 import os
 from logdog.core.path import Path
+
+
+logger = logging.getLogger(__name__)
 
 
 class Register(object):
@@ -26,9 +30,14 @@ class Register(object):
         return self._reg[item]
 
     def get_path(self, name):
-        path = Path('', 0, None)
-        path.__setstate__(json.loads(self.get(name)))
+        path = Path(name, 0, None)
+        try:
+            path.__setstate__(json.loads(self.get(name)))
+        except ValueError as e:
+            logger.warning('[REGISTER] Cannot load stats for %s. Reason: "%s"', name, e)
         return path
 
     def set_path(self, path_obj):
+        logger.debug('[REGISTER] Save state for path: %s', path_obj)
         self.set(path_obj.name, json.dumps(path_obj.__getstate__()))
+        self._reg.sync()

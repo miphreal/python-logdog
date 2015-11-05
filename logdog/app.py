@@ -19,12 +19,13 @@ class Application(object):
     def __init__(self, active_namespaces, config, io_loop=None,
                  force_handler=None, force_sources=None, reset_indices=False):
         from tornado.ioloop import IOLoop
+
         self.io_loop = io_loop or IOLoop.current()
         self.config = config
         self.force_handler = force_handler
         self.force_sources = force_sources
-        self.namespaces = (Config.namespace_default,)
-        self.active_namespaces = active_namespaces or [Config.namespace_default]
+        self.namespaces = ()
+        self.active_namespaces = active_namespaces or ()
         self._pipes = {}
         self._sources = {}
         self.register = Register(index_file=config.options.sources.index_file, reset=reset_indices)
@@ -36,6 +37,8 @@ class Application(object):
 
     @gen.coroutine
     def load_sources(self):
+        """Prepares list of targets for being watched"""
+
         flat_files = set()
         flat_patterns = set()
 
@@ -128,6 +131,7 @@ class Application(object):
 
         pipes = [p for _, p in self._pipes.itervalues()]
         watchers = [w for w, _ in self._pipes.itervalues()]
+        # let's activate all pipes before watchers are activated
         yield [i.start() for i in chain(pipes, watchers)]
 
     def run(self):

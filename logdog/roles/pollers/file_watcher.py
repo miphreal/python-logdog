@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class FileWatcher(BasePoller):
-    defaults = BasePoller.defaults.copy_and_update(
+    defaults = BasePoller.defaults(
         poll_sleep_policy='utils.policies.growing-sleep',
         greedy_policy='utils.policies.mostly-greedy',
         greedy_file_reading=True,

@@ -36,7 +36,7 @@ class BaseRole(object):
     @classmethod
     def __singleton_key__(cls, passed_args, passed_kwargs):
         return '{}.{}:{}'.format(cls.__module__,
-                                  cls.__name__, passed_kwargs.get('config_name', 'unknown'))
+                                 cls.__name__, passed_kwargs.get('config_name', 'unknown'))
 
     @property
     def is_unique(self):
@@ -56,7 +56,7 @@ class BaseRole(object):
         self.parent = config.pop('parent')
         self.namespaces = config.pop('namespaces', None) or self.app.namespaces
         self.config = self.defaults.copy_and_update(config)
-        self.items = items
+        self.items = items or config.get('children', items)
 
         self._started = self._unique_start_lock = False
         self._started_futures = []

@@ -1,7 +1,7 @@
 # Default config.
 # options/properties must be valid python identifiers, e.g. "default_pipe"
 # names can be any string, e.g. "file->webui" (excluding ' ', '@')
-from __future__ import absolute_import, unicode_literals
+from __future__ import unicode_literals
 
 
 config = {
@@ -41,12 +41,15 @@ config = {
     'pipes': {
         'default': 'logdog.roles.pipes.Pipe',
 
-        'to-web': [
-            'watch processors.stripper',
-            'watch connectors.zmq-tunnel@sender',
-            'view connectors.zmq-tunnel@receiver',
-            'view viewers.webui',
-        ],
+        'to-web': {
+            'cls': 'logdog.roles.pipes.Pipe',
+            '*': [
+                'watch processors.stripper',
+                'watch connectors.zmq-tunnel@sender',
+                'view connectors.zmq-tunnel@receiver',
+                'view viewers.webui',
+            ],
+        },
 
         'experiment-x001': {
             'cls': 'logdog.roles.pipes.Pipe',
@@ -118,7 +121,7 @@ config = {
 
         'webui': {
             'cls': 'logdog.roles.viewers.WebUI',
-            'port': 8888,
+            'port': 8889,
             'debug': False,
         },
         'console': {
