@@ -21,15 +21,15 @@ VARIATION_STARTS_WITH = '@'
 
 
 class ConfigLookupPath(object):
-    path_format_re = re.compile(r'^((?P<namespaces>[\w-]+(,[\w-]+)*)\s+)?'
-                                r'(?P<path>[\w-]+(\.[\w-]+)*)'
-                                r'(?P<variation>{}[\w-]+)?$'
-                                .format(VARIATION_STARTS_WITH))
+    _path_format_re = re.compile(r'^((?P<namespaces>[\w-]+(,[\w-]+)*)\s+)?'
+                                 r'(?P<path>[\w-]+(\.[\w-]+)*)'
+                                 r'(?P<variation>{}[\w-]+)?$'
+                                 .format(VARIATION_STARTS_WITH))
 
     def __init__(self, path):
         path = path or ''
         self.origin_path = path
-        _match = self.path_format_re.match(path)
+        _match = self._path_format_re.match(path)
         if _match:
             kw = _match.groupdict()
             self.namespaces = (kw.get('namespaces') or
@@ -108,8 +108,8 @@ class Config(ObjectDict):
                                lookup_path.path, fallback)
                 return self.find_conf(name=fallback)
             else:
-                logger.warning('[CONFIG] Could not find fallback "%s".',
-                               fallback)
+                logger.warning('[CONFIG] Could not find "%s".',
+                               lookup_path.path)
                 raise
 
         if extra_conf and \
@@ -147,7 +147,7 @@ class Config(ObjectDict):
         if _cache is not None:
             return copy.deepcopy(_cache)
 
-        conf, lookup_path = self.find_conf(name, fallback=None)
+        conf, lookup_path = self.find_conf(name, fallback=fallback)
 
         if isinstance(conf, string_types):
             conf = {'cls': conf}
@@ -161,14 +161,26 @@ class Config(ObjectDict):
                            'extracting class "%s". Faced an error: "%s".',
                            conf, e)
 
-            if lookup_path.path != 'default':
-                # lookup for default configuration `down-to-up`
-                # or use passes `fallback` path
-                fallback = fallback if fallback else ''.join(
-                    lookup_path.path.rpartition('.')[:-1] + ('default',))
+            if fallback:
+                # use passed `fallback` path
                 return self.find_class(name=fallback)
             else:
-                raise
+                # lookup for default configuration `down-to-up`
+                parent_path = lookup_path.path
+                while parent_path:
+                    parent_path = parent_path.rpartition('.')[0]
+                    default_path = 'default'
+                    if parent_path:
+                        default_path = '.'.join((parent_path, default_path))
+
+                    try:
+                        return self.find_class(name=default_path)
+                    except KeyError as e:
+                        logger.warning(
+                            '[CONFIG] Tried extracting path "%s". '
+                            'Faced an error: "%s".', default_path, e)
+
+            raise
 
         self._classes_cache[initial_name] = cls, conf, lookup_path
         return cls, copy.deepcopy(conf), lookup_path

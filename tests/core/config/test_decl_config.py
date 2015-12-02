@@ -92,8 +92,74 @@ class TestConfigDeclaration(object):
                              'debug': False}),
                 instance_of(ConfigLookupPath))))
 
-    def test_find_class(self):
-        raise NotImplementedError
+    def test_find_class__simple_definition(self):
+        import logging
+
+        c = Config({
+            'path': {'nested': {'sys-logger': {'cls': 'logging.Logger'}}}
+        })
+
+        cls, conf, lookup = c.find_class('path.nested.sys-logger')
+
+        assert_that(cls, same_instance(logging.Logger))
+        assert_that(conf, has_entries({'cls': 'logging.Logger'}))
+        assert_that(lookup.path, equal_to('path.nested.sys-logger'))
+
+    def test_find_class__simple_definition_without_cls(self):
+        import logging
+
+        c = Config({
+            'path': {'nested': {'sys-logger': 'logging.Logger'}}
+        })
+
+        cls, conf, lookup = c.find_class('path.nested.sys-logger')
+
+        assert_that(cls, same_instance(logging.Logger))
+        assert_that(conf, has_entries({'cls': 'logging.Logger'}))
+        assert_that(lookup.path, equal_to('path.nested.sys-logger'))
+
+    def test_find_class__with_fallback(self):
+        import logging
+
+        c = Config({
+            'path': {'nested': {'sys-logger': 'xx.Logger',
+                                'fallback': 'logging.Logger'}}
+        })
+
+        cls, conf, lookup = c.find_class('path.nested.sys-logger',
+                                         fallback='path.nested.fallback')
+
+        assert_that(cls, same_instance(logging.Logger))
+        assert_that(conf, has_entries({'cls': 'logging.Logger'}))
+        assert_that(lookup.path, equal_to('path.nested.fallback'))
+
+    def test_find_class__try_default(self):
+        import logging
+
+        c = Config({
+            'path': {'nested': {'sys-logger': 'xx.Logger',
+                                'default': 'logging.Logger'}}
+        })
+
+        cls, conf, lookup = c.find_class('path.nested.sys-logger')
+
+        assert_that(cls, same_instance(logging.Logger))
+        assert_that(conf, has_entries({'cls': 'logging.Logger'}))
+        assert_that(lookup.path, equal_to('path.nested.default'))
+
+    def test_find_class__try_default_hierarchy(self):
+        import logging
+
+        c = Config({
+            'path': {'nested': {'sys-logger': 'xx.Logger'}},
+            'default': 'logging.Logger',
+        })
+
+        cls, conf, lookup = c.find_class('path.nested.sys-logger')
+
+        assert_that(cls, same_instance(logging.Logger))
+        assert_that(conf, has_entries({'cls': 'logging.Logger'}))
+        assert_that(lookup.path, equal_to('default'))
 
     def test_find_and_construct_class(self):
         raise NotImplementedError
