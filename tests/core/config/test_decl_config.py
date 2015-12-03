@@ -1,5 +1,6 @@
 # coding=utf-8
 from hamcrest import *
+from mock import patch
 
 from logdog.core.config.decl import Config, ConfigLookupPath
 
@@ -161,5 +162,93 @@ class TestConfigDeclaration(object):
         assert_that(conf, has_entries({'cls': 'logging.Logger'}))
         assert_that(lookup.path, equal_to('default'))
 
-    def test_find_and_construct_class(self):
-        raise NotImplementedError
+    def test_find_and_construct_class__simple(self):
+        c = Config({
+            'path': {'nested': {'sys-conf': {
+                'cls': 'logdog.core.config.Config'
+            }}},
+        })
+
+        obj = c.find_and_construct_class('path.nested.sys-conf')
+
+        assert_that(obj, instance_of(Config))
+
+    def test_find_and_construct_class__params(self):
+        c = Config({
+            'path': {'nested': {'sys-conf': {
+                'cls': 'collections.OrderedDict',
+                'cls*': [{'a': 1}],
+                'cls**': {'b': 2, 'c': 3}
+            }}},
+        })
+
+        obj = c.find_and_construct_class('path.nested.sys-conf')
+        assert_that(obj, has_entries({'a': 1, 'b': 2, 'c': 3}))
+
+    def test_find_and_construct_class__params_and_meta(self):
+        c = Config({
+            'path': {'nested': {'sys-conf': {
+                'cls': 'collections.OrderedDict',
+                'cls*': [{'a': 1}],
+                'cls**': {'b': 2, 'c': 3}
+            }}},
+        })
+
+        obj = c.find_and_construct_class('path.nested.sys-conf')
+        assert_that(obj, has_entries({
+            'a': 1, 'b': 2, 'c': 3,
+            'namespaces': contains('*'),
+            'config_name': 'path.nested.sys-conf',
+            'config_variation': None}))
+
+        obj = c.find_and_construct_class('path.nested.sys-conf',
+                                         pass_meta=False)
+        assert_that(obj, not_(has_entries({
+            'namespaces': contains('*'),
+            'config_name': 'path.nested.sys-conf',
+            'config_variation': None})))
+
+    def test_find_and_construct_class__factory(self):
+        c = Config({
+            'path': {'nested': {'sys-conf': {
+                'cls': 'collections.OrderedDict',
+            }}},
+        })
+
+        class ClassWithFactory(object):
+            @classmethod
+            def factory(cls, *args, **kwargs):
+                return 'obj'
+
+        ret = (
+            ClassWithFactory,
+            {},
+            ConfigLookupPath('path.nested.sys-conf'),
+        )
+        with patch.object(Config, 'find_class', return_value=ret):
+            obj = c.find_and_construct_class('path.nested.sys-conf')
+
+        assert_that(obj, equal_to('obj'))
+
+    def test_find_and_construct_class__invalid_factory(self):
+        c = Config({
+            'path': {'nested': {'sys-conf': {
+                'cls': 'collections.OrderedDict',
+            }}},
+        })
+
+        class ClassWithoutFactory(object):
+            factory = None
+
+            def __init__(self, *args, **kwargs):
+                pass
+
+        ret = (
+            ClassWithoutFactory,
+            {},
+            ConfigLookupPath('path.nested.sys-conf'),
+        )
+        with patch.object(Config, 'find_class', return_value=ret):
+            obj = c.find_and_construct_class('path.nested.sys-conf')
+
+        assert_that(obj, instance_of(ClassWithoutFactory))

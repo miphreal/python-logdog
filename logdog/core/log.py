@@ -13,7 +13,8 @@ def configure_logging(log_level, log_format, log_custom_format=None):
                 'format': '%(asctime)s [%(levelname)s] %(message)s'
             },
             'verbose': {
-                'format': 'PID%(process)d %(asctime)s [%(levelname)s:%(name)s:%(lineno)d] %(message)s'
+                'format': 'PID%(process)d %(asctime)s '
+                          '[%(levelname)s:%(name)s:%(lineno)d] %(message)s'
             },
             'custom': {
                 'format': log_custom_format

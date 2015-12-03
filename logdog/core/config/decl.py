@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 _unset = object()
 DEFAULT_NAMESPACE = '*'
 VARIATION_STARTS_WITH = '@'
+CLS_ARGS_KEY = 'cls*'
+CLS_KWARGS_KEY = 'cls**'
 
 
 class ConfigLookupPath(object):
@@ -112,9 +114,13 @@ class Config(ObjectDict):
                                lookup_path.path)
                 raise
 
-        if extra_conf and \
-                isinstance(target, dict) and isinstance(extra_conf, dict):
-            target.update(extra_conf)
+        if extra_conf and isinstance(target, dict):
+
+            if isinstance(extra_conf, dict):
+                target.setdefault(CLS_KWARGS_KEY, Config()).update(extra_conf)
+
+            elif isinstance(extra_conf, (list, tuple)):
+                target[CLS_ARGS_KEY] = extra_conf
 
         return target, lookup_path
 
@@ -189,8 +195,10 @@ class Config(ObjectDict):
                                  args=None, kwargs=None, pass_meta=True):
         found_cls, conf, path = self.find_class(name=name, fallback=fallback)
 
-        args = args or conf.pop('*', None) or ()
-        kw = kwargs or conf.pop('**', None) or {}
+        args = args or conf.pop(CLS_ARGS_KEY, None) or ()
+        kw = conf.pop(CLS_KWARGS_KEY, None) or {}
+        if isinstance(kwargs, dict):
+            kw.update(kwargs)
 
         if pass_meta:
             namespaces = set(kw.pop('namespaces', ())).union(path.namespaces)

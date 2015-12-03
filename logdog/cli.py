@@ -10,7 +10,7 @@ Arguments:
 
 Options:
   -h --help                 Show this screen
-  --version                 Show version
+  -V --version              Show version
   -v --verbose              Run in verbose mode
   -l --log-level=<level>    Set internal logging level [default: INFO]
   -f --log-format=<format>  Set internal logging format [default: quiet]
@@ -18,11 +18,12 @@ Options:
   -s --sources=<file:...>   Force specify files to be watched
   -H --handler=<handler>    Force set handler for all sources
                             (e.g. --handler=viewers.console)
-  --reset-indices           Remove current indices (will reset watching state)
+  -R --reset-indices        Remove current indices (will reset watching state)
 """
 from __future__ import absolute_import, unicode_literals
 
 from docopt import docopt
+
 from logdog.app import Application
 from logdog.core.config import ConfigLoader
 from logdog.core.log import configure_logging

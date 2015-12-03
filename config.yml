@@ -7,11 +7,13 @@ sources:
 
 pipes:
   custom:
-    - watch processors.stripper
-    - watch parsers.regex:
-        regex: (?P<msg>.*)
-    - view formatters.formatter
-    - view viewers.console
+    cls: logdog.roles.pipes.Pipe
+    cls*:
+      - watch processors.stripper
+      - watch parsers.regex:
+          regex: (?P<msg>.*)
+      - view formatters.formatter
+      - view viewers.console
 
 
   custom2:

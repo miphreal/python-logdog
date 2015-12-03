@@ -24,4 +24,4 @@ class BasePoller(BaseRole):
     def start(self):
         yield super(BasePoller, self).start()
         if self.started:
-            yield self.poll()
+            yield gen.maybe_future(self.poll())

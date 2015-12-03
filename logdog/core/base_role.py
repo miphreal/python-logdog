@@ -4,7 +4,7 @@ import logging
 from tornado import gen
 from tornado.concurrent import Future
 
-from .config import Config
+from .config import Config, CLS_ARGS_KEY
 from .msg import Msg
 from .utils import mark_as_proxy_method, is_proxy, simple_oid
 
@@ -74,7 +74,7 @@ class BaseRole(object):
 
     def construct_subrole(self, name, conf):
         if isinstance(conf, (list, tuple)):
-            conf = {'*': conf}
+            conf = {CLS_ARGS_KEY: conf}
         elif conf is None:
             conf = {}
         conf['app'] = self.app
@@ -166,7 +166,10 @@ class BaseRole(object):
     @gen.coroutine
     def start(self):
         need_to_skip_start = self.started or not self.is_active
-        if not need_to_skip_start and self.is_unique and self._unique_start_lock:
+
+        if not need_to_skip_start and \
+                self.is_unique and self._unique_start_lock:
+
             need_to_skip_start = True
 
         if not need_to_skip_start:
@@ -184,7 +187,8 @@ class BaseRole(object):
             # mark obj as 'started'
             self.started = True
 
-            # notify that the obj will be reused for other pipes in case of uniqueness
+            # notify that the obj will be reused
+            # for other pipes in case of uniqueness
             if self.is_unique:
                 logger.debug('[%s] Started in a shared mode.', self)
 

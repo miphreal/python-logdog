@@ -28,7 +28,8 @@ class ConfigLoader(object):
 
     def _load_user_config(self):
         if not os.path.exists(self._path):
-            raise ConfigError('[{}] Config file does not exist.'.format(self._path))
+            raise ConfigError(
+                '[{}] Config file does not exist.'.format(self._path))
         with open(self._path, 'r') as f:
             return load(f, Loader=Loader)
 
@@ -54,7 +55,9 @@ class ConfigLoader(object):
         default_config = copy.deepcopy(logdog_default_config)
 
         if not isinstance(user_config, dict):
-            raise ConfigError('[{}] Invalid config file: must have \"key: value\" format.'.format(self._path))
+            raise ConfigError(
+                '[{}] Invalid config file: must have '
+                '\"key: value\" format.'.format(self._path))
 
         def walk(cfg, key=None):
             if isinstance(cfg, dict):
@@ -67,7 +70,9 @@ class ConfigLoader(object):
                     try:
                         ret = import_object(ret)
                     except ImportError:
-                        logger.debug('[%s] Faced non-importable path: \"%s: %s\".', self._path, key, ret)
+                        logger.debug(
+                            '[%s] Faced non-importable path: '
+                            '\"%s: %s\".', self._path, key, ret)
                 return ret
             return cfg
 

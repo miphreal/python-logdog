@@ -4,6 +4,7 @@ import logging
 from tornado import gen
 
 from logdog.core.base_role import BaseRole
+from logdog.core.config.utils import handle_as_list
 
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,9 @@ class BasePipe(BaseRole):
 
     def __init__(self, *args, **kwargs):
         super(BasePipe, self).__init__(*args, **kwargs)
-        self.items = [self.construct_subrole(name, conf) for name, conf in self.items]
+        self.items = handle_as_list(self.items)
+        self.items = [self.construct_subrole(name, conf)
+                      for name, conf in self.items]
         self._link_pipe_objects()
         if self.items:
             self.items[-1].set_output(None)
@@ -29,7 +32,9 @@ class BasePipe(BaseRole):
         in_ = active_pipe[0] if active_pipe else None
         for p in active_pipe[1:]:
             if in_.output is not p:
-                logger.warning('[%s] Lost connectivity in the pipe. Check the configuration. %s -x-> %s', self, in_, p)
+                logger.warning('[%s] Lost connectivity in the pipe. '
+                               'Check the configuration. %s -x-> %s',
+                               self, in_, p)
                 return False
             in_ = p
         return True

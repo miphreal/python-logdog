@@ -25,12 +25,17 @@ class Application(object):
         self.force_handler = force_handler
         self.force_sources = force_sources
         self.namespaces = ()
-        self.active_namespaces = active_namespaces or ()
+        self.active_namespaces = active_namespaces or \
+                                 (config.namespace_default,)
         self._pipes = {}
         self._sources = {}
-        self.register = Register(index_file=config.options.sources.index_file, reset=reset_indices)
+        self.register = Register(
+            index_file=config.options.sources.index_file,
+            reset=reset_indices
+        )
 
-        logger.debug('[%s] Active namespaces: %s', self, ', '.join(self.active_namespaces))
+        logger.debug('[%s] Active namespaces: %s',
+                     self, ', '.join(self.active_namespaces))
 
     def __str__(self):
         return 'APP'
@@ -56,11 +61,14 @@ class Application(object):
             if isinstance(conf, basestring):
                 conf = Config(handler=conf)
             elif not conf:
-                conf = Config(handler=self.config.options.sources.default_handler)
+                conf = Config(
+                    handler=self.config.options.sources.default_handler)
             elif isinstance(conf, dict):
-                conf.setdefault('handler', self.config.options.sources.default_handler)
+                conf.setdefault('handler',
+                                self.config.options.sources.default_handler)
             else:
-                logger.warning('[APP] Weird config for "%s" (will be skipped).', ', '.join(source))
+                logger.warning('[APP] Weird config for "%s" (will be skipped).',
+                               ', '.join(source))
                 continue
 
             if self.force_handler:
@@ -68,8 +76,10 @@ class Application(object):
 
             intersection_patterns = flat_patterns.intersection(source)
             if intersection_patterns:
-                logger.warning('[APP] Duplicate source patterns: %s (will be skipped).',
-                               ', '.join(intersection_patterns))
+                logger.warning(
+                    '[APP] Duplicate source patterns: %s (will be skipped).',
+                    ', '.join(intersection_patterns))
+
                 source = list(set(source).difference(intersection_patterns))
 
             source.sort()
@@ -81,7 +91,8 @@ class Application(object):
             intersection_files = flat_files.intersection(files)
             if intersection_files:
                 logger.warning('[APP] Your source patterns have intersections.'
-                               'The following files appeared in several groups: %s',
+                               'The following files appeared in several groups:'
+                               ' %s',
                                ', '.join(intersection_files))
 
                 # remove from wider pattern
@@ -89,12 +100,14 @@ class Application(object):
                     intersection_ = files_.intersection(files)
                     if intersection_ and len(files_) > len(files):
                         files_.difference_update(intersection_)
-                        logger.warning('[APP] "%s" will not be a part of "%s" group.',
-                                       ', '.join(intersection_), ', '.join(source_))
+                        logger.warning(
+                            '[APP] "%s" will not be a part of "%s" group.',
+                            ', '.join(intersection_), ', '.join(source_))
                     elif intersection_:
                         files.difference_update(intersection_)
-                        logger.warning('[APP] "%s" will not be a part of "%s" group.',
-                                       ', '.join(intersection_), ', '.join(source))
+                        logger.warning(
+                            '[APP] "%s" will not be a part of "%s" group.',
+                            ', '.join(intersection_), ', '.join(source))
 
             flat_files.update(files)
             flat_patterns.update(source)
@@ -110,7 +123,8 @@ class Application(object):
             for f in files:
                 watcher = self.config.find_and_construct_class(
                     name=conf.get('watcher', default_watcher), kwargs=conf)
-                pipe = self.config.find_and_construct_class(name=conf['handler'], kwargs=conf)
+                pipe = self.config.find_and_construct_class(
+                    name=conf['handler'], kwargs=conf)
 
                 try:
                     path = self.register.get_path(f)

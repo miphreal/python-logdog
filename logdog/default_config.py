@@ -43,7 +43,7 @@ config = {
 
         'to-web': {
             'cls': 'logdog.roles.pipes.Pipe',
-            '*': [
+            'cls*': [
                 'watch processors.stripper',
                 'watch connectors.zmq-tunnel@sender',
                 'view connectors.zmq-tunnel@receiver',
@@ -53,7 +53,7 @@ config = {
 
         'experiment-x001': {
             'cls': 'logdog.roles.pipes.Pipe',
-            '*': [
+            'cls*': [
                 'watch processors.stripper',
                 {'forwarders.broadcast': [
                     'watch viewers.console',
@@ -82,7 +82,7 @@ config = {
     'pollers': {
         'file-watcher': {
             'cls': 'logdog.roles.pollers.FileWatcher',
-            'namespaces': ['watch'],
+            'cls**': {'namespaces': ['watch']},
         },
     },
 
@@ -121,12 +121,14 @@ config = {
 
         'webui': {
             'cls': 'logdog.roles.viewers.WebUI',
-            'port': 8889,
-            'debug': False,
+            'cls**': {
+                'port': 8889,
+                'debug': False,
+            },
         },
         'console': {
             'cls': 'logdog.roles.viewers.Console',
-            'redirect_to': 'stdout',
+            'cls**': {'redirect_to': 'stdout'},
         },
         'null': 'logdog.roles.viewers.Null',
     },

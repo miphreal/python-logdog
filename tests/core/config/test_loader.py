@@ -49,4 +49,5 @@ class TestConfigLoader(object):
         cl = ConfigLoader(path=self.config_path)
         assert_that(
             calling(cl.load_config),
-            raises(ConfigError, r'^\[[^\]]*\] Invalid config file: must have "key: value" format\.$'))
+            raises(ConfigError, r'^\[[^\]]*\] Invalid config file: must have '
+                                r'"key: value" format\.$'))

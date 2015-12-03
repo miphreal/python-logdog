@@ -19,7 +19,8 @@ class DefaultSleepPolicy(object):
 
         self._base_sleep_interval = self._sleep_interval = sleep_interval
         self._max_sleep_interval = max_sleep_interval
-        self._sleep_repeat_count = self._base_sleep_repeat_count = sleep_repeat_count
+        self._sleep_repeat_count = sleep_repeat_count
+        self._base_sleep_repeat_count = sleep_repeat_count
 
     def _next_sleep_interval(self):
         if not self._sleep_repeat_count:
@@ -32,7 +33,7 @@ class DefaultSleepPolicy(object):
 
     def sleep(self):
         f = gen.sleep(self._sleep_interval)
-        f.add_done_callback(lambda _: self._next_sleep_interval())
+        f.add_done_callback(lambda __: self._next_sleep_interval())
         return f
 
     @property
@@ -57,8 +58,8 @@ class GreedyPolicy(object):
 
     def need_to_wait(self):
         self._count += 1
-        return (self._count >= self._max_count
-                or self._time + self._timeout < time.time())
+        return (self._count >= self._max_count or
+                self._time + self._timeout < time.time())
 
     def wait(self):
         self._count = 0

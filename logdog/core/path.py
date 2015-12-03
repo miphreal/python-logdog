@@ -8,7 +8,14 @@ logger = logging.getLogger(__name__)
 
 
 class Path(object):
-    __slots__ = ('name', 'stat', '_prev_stat', 'offset', '_f', '_last_read_line')
+    __slots__ = (
+        'name',
+        'stat',
+        '_prev_stat',
+        'offset',
+        '_f',
+        '_last_read_line'
+    )
 
     def __init__(self, name, offset, stat):
         self.name = name
@@ -34,7 +41,10 @@ class Path(object):
         self.name = value['name']
         self.stat = os.stat_result(value['stat']) if value['stat'] else None
         self.offset = value['offset']
-        self._prev_stat = os.stat_result(value['_prev_stat']) if value['_prev_stat'] else None
+        self._prev_stat = None
+        if value['_prev_stat']:
+            self._prev_stat = os.stat_result(value['_prev_stat'])
+
         self._last_read_line = value['_last_read_line']
         self._f = None
 
@@ -57,24 +67,29 @@ class Path(object):
         self.stat = os.stat(self.name)
 
         if not self.is_same_file(self._prev_stat, self.stat):
-            logger.debug('[FILE:%s] New file detected by this path. Re-opening...', self.name)
+            logger.debug('[FILE:%s] New file detected by this path. '
+                         'Re-opening...', self.name)
             self.offset = 0
             self.reopen()
 
         elif self.is_file_truncated(self._prev_stat, self.stat):
-            logger.debug('[FILE:%s] Seems, file was truncated. Re-opening...', self.name)
+            logger.debug('[FILE:%s] Seems, file was truncated. '
+                         'Re-opening...', self.name)
             self.offset = 0
             self.reopen()
 
     @staticmethod
     def is_same_file(prev_stat, cur_stat):
-        return prev_stat.st_ino == cur_stat.st_ino and prev_stat.st_dev == cur_stat.st_dev
+        return (
+            prev_stat.st_ino == cur_stat.st_ino and
+            prev_stat.st_dev == cur_stat.st_dev
+        )
 
     @staticmethod
     def is_file_truncated(prev_stat, cur_stat):
         return prev_stat.st_size > cur_stat.st_size
 
     def read_line(self):
-        self._last_read_line = (_, line) = (self.offset, self._f.readline())
+        self._last_read_line = (__, line) = (self.offset, self._f.readline())
         self.offset = self._f.tell()
         return line
